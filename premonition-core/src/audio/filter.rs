@@ -73,30 +73,31 @@ impl Filter {
         // Feedback calculation
         let sigma = gl * gl * gl * self.s1 + gl * gl * self.s2 + gl * self.s3 + self.s4;
         let gamma = gl * gl * gl * gl;
-        let input_with_feedback = (input - res * sigma) / (1.0 + res * gamma);
+        // Apply clipping to the feedback to ensure stability
+        let input_with_feedback = ((input - res * sigma) / (1.0 + res * gamma)).clamp(-4.0, 4.0);
 
         // Stage 1
         let v1 = (input_with_feedback - self.s1) * gl;
         let y1 = v1 + self.s1;
-        self.s1 = y1 + v1;
+        self.s1 = (y1 + v1).clamp(-10.0, 10.0);
 
         // Stage 2
         let v2 = (y1 - self.s2) * gl;
         let y2 = v2 + self.s2;
-        self.s2 = y2 + v2;
+        self.s2 = (y2 + v2).clamp(-10.0, 10.0);
 
         // Stage 3
         let v3 = (y2 - self.s3) * gl;
         let y3 = v3 + self.s3;
-        self.s3 = y3 + v3;
+        self.s3 = (y3 + v3).clamp(-10.0, 10.0);
 
         // Stage 4
         let v4 = (y3 - self.s4) * gl;
         let y4 = v4 + self.s4;
-        self.s4 = y4 + v4;
+        self.s4 = (y4 + v4).clamp(-10.0, 10.0);
 
-        // Apply slight analog saturation/soft clipping
-        if y4 > 1.0 { 1.0 } else if y4 < -1.0 { -1.0 } else { y4 }
+        // Apply slight analog saturation/soft clipping using x / (1 + |x|)
+        y4 / (1.0 + y4.abs())
     }
 
     pub fn update_params(&mut self, params: &Parameters) {
