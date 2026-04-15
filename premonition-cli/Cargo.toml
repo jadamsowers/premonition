@@ -6,6 +6,7 @@ edition.workspace = true
 [dependencies]
 premonition-core = { path = "../premonition-core", features = ["std"] }
 cpal = "0.15"
+midir = "0.10"
 serde = { workspace = true }
 serde_json = { workspace = true }
 clap = { version = "4", features = ["derive"] }

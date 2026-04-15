@@ -113,6 +113,9 @@ impl Engine {
             } => {
                 self.voice_manager.set_aftertouch(channel, note, value);
             }
+            MidiMessage::AllNotesOff { channel: _ } => {
+                self.voice_manager.all_notes_off();
+            }
             MidiMessage::ControlChange { .. } => {}
         }
     }

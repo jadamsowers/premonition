@@ -30,6 +30,9 @@ pub enum MidiMessage {
         note: u8,
         value: f32,
     },
+    AllNotesOff {
+        channel: u8,
+    },
     ControlChange {
         channel: u8,
         controller: u8,

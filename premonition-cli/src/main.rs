@@ -2,8 +2,9 @@
 
 use clap::Parser;
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
+use midir::MidiInput;
 use premonition_core::prelude::*;
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::atomic::{AtomicU8, Ordering};
 use std::sync::{Arc, Mutex};
 
 #[derive(Parser, Debug)]
@@ -18,12 +19,16 @@ struct Args {
 
     #[arg(short, long)]
     preset: Option<String>,
+
+    #[arg(short = 'm', long)]
+    midi_input: Option<String>,
 }
 
 struct SynthState {
     engine: Engine,
-    note_on: bool,
-    current_note: u8,
+    note_held: bool,
+    current_note: AtomicU8,
+    mod_wheel: AtomicU8,
 }
 
 fn main() {
@@ -31,8 +36,9 @@ fn main() {
 
     let state = Arc::new(Mutex::new(SynthState {
         engine: Engine::new(),
-        note_on: false,
-        current_note: 60,
+        note_held: false,
+        current_note: AtomicU8::new(60),
+        mod_wheel: AtomicU8::new(0),
     }));
 
     {
@@ -49,27 +55,245 @@ fn main() {
     println!("Sample Rate: {} Hz", args.sample_rate);
     println!("Buffer Size: {} samples", args.buffer_size);
     println!();
-    println!("Controls:");
-    println!("  Z/X - Note -/+");
-    println!("  Space - Hold note");
-    println!("  Q/W/E/R/T - Filter cutoff/resonance/env");
-    println!("  A/S/D/F/G/H - Amp attack/decay/sustain/release");
-    println!("  P - Print current parameters");
-    println!("  Esc - Exit");
+
+    if let Some(ref midi_name) = args.midi_input {
+        if let Err(e) = setup_midi(&state, midi_name) {
+            eprintln!("Failed to setup MIDI: {}", e);
+        }
+    } else {
+        match try_setup_midi(&state) {
+            Ok(_) => println!("MIDI input connected!"),
+            Err(e) => eprintln!(
+                "No MIDI input found: {}. Connect a MIDI device and restart, or use -m to specify.",
+                e
+            ),
+        }
+    }
+
+    println!();
+    println!("MIDI Controls:");
+    println!("  Note On/Off - Play notes");
+    println!("  CC 1 - Mod wheel");
+    println!("  CC 64 - Sustain");
+    println!("  Pitch bend - Built-in");
+    println!();
+    println!("Starting audio... (will timeout in 60 seconds)");
+    println!("Press Ctrl+C to exit.");
     println!();
 
-    run_interactive(&state, args.sample_rate, args.buffer_size);
+    run_audio(&state, args.sample_rate);
 }
 
-fn run_interactive(state: &Arc<Mutex<SynthState>>, sample_rate: usize, _buffer_size: usize) {
-    let running = Arc::new(AtomicBool::new(true));
-    let r = running.clone();
+fn try_setup_midi(state: &Arc<Mutex<SynthState>>) -> Result<(), Box<dyn std::error::Error>> {
+    let midi_in = MidiInput::new("premonition")?;
+    let ports = midi_in.ports();
 
-    std::thread::spawn(move || {
-        std::thread::sleep(std::time::Duration::from_secs(60));
-        r.store(false, Ordering::SeqCst);
-    });
+    if ports.is_empty() {
+        return Err("No MIDI input devices found".into());
+    }
 
+    let port_name = midi_in.port_name(&ports[0])?;
+    println!("Using MIDI input: {}", port_name);
+
+    let state_clone = state.clone();
+    let _conn = midi_in.connect(
+        &ports[0],
+        "premonition-input",
+        move |_timestamp, message, _| {
+            if message.len() >= 3 {
+                let status = message[0];
+                let data1 = message[1];
+                let data2 = message[2];
+
+                let message_type = status & 0xF0;
+                let channel = status & 0x0F;
+
+                let mut state = state_clone.lock().unwrap();
+
+                match message_type {
+                    0x90 => {
+                        if data2 > 0 {
+                            state.engine.handle_midi(MidiMessage::NoteOn {
+                                channel,
+                                note: data1,
+                                velocity: data2,
+                            });
+                            state.current_note.store(data1, Ordering::SeqCst);
+                            state.note_held = true;
+                        } else {
+                            state.engine.handle_midi(MidiMessage::NoteOff {
+                                channel,
+                                note: data1,
+                            });
+                            state.note_held = false;
+                        }
+                    }
+                    0x80 => {
+                        state.engine.handle_midi(MidiMessage::NoteOff {
+                            channel,
+                            note: data1,
+                        });
+                        state.note_held = false;
+                    }
+                    0xB0 => match data1 {
+                        1 => {
+                            state.mod_wheel.store(data2, Ordering::SeqCst);
+                            state.engine.handle_midi(MidiMessage::ModWheel {
+                                channel,
+                                value: data2 as f32 / 127.0,
+                            });
+                        }
+                        64 => {
+                            if data2 >= 64 {
+                                state.engine.handle_midi(MidiMessage::SustainOn { channel });
+                            } else {
+                                state
+                                    .engine
+                                    .handle_midi(MidiMessage::SustainOff { channel });
+                            }
+                        }
+                        123 | 120 => {
+                            state
+                                .engine
+                                .handle_midi(MidiMessage::AllNotesOff { channel });
+                        }
+                        _ => {}
+                    },
+                    0xE0 => {
+                        let bend_value = ((data2 as u16) << 7) | (data1 as u16);
+                        let normalized = (bend_value as f32 - 8192.0) / 8192.0;
+                        state.engine.handle_midi(MidiMessage::PitchBend {
+                            channel,
+                            value: normalized,
+                        });
+                    }
+                    0xD0 => {
+                        let current_note = state.current_note.load(Ordering::SeqCst);
+                        state.engine.handle_midi(MidiMessage::Aftertouch {
+                            channel,
+                            note: current_note,
+                            value: data1 as f32 / 127.0,
+                        });
+                    }
+                    _ => {}
+                }
+            }
+        },
+        (),
+    )?;
+
+    Ok(())
+}
+
+fn setup_midi(
+    state: &Arc<Mutex<SynthState>>,
+    port_name: &str,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let midi_in = MidiInput::new("premonition")?;
+    let ports = midi_in.ports();
+
+    let mut port_idx = None;
+    for (i, p) in ports.iter().enumerate() {
+        if midi_in.port_name(p)?.contains(port_name) {
+            port_idx = Some(i);
+            break;
+        }
+    }
+
+    let port_idx = port_idx.ok_or_else(|| format!("MIDI port '{}' not found", port_name))?;
+
+    let state_clone = state.clone();
+    let _conn = midi_in.connect(
+        &ports[port_idx],
+        "premonition-input",
+        move |_timestamp, message, _| {
+            if message.len() >= 3 {
+                let status = message[0];
+                let data1 = message[1];
+                let data2 = message[2];
+
+                let message_type = status & 0xF0;
+                let channel = status & 0x0F;
+
+                let mut state = state_clone.lock().unwrap();
+
+                match message_type {
+                    0x90 => {
+                        if data2 > 0 {
+                            state.engine.handle_midi(MidiMessage::NoteOn {
+                                channel,
+                                note: data1,
+                                velocity: data2,
+                            });
+                            state.current_note.store(data1, Ordering::SeqCst);
+                            state.note_held = true;
+                        } else {
+                            state.engine.handle_midi(MidiMessage::NoteOff {
+                                channel,
+                                note: data1,
+                            });
+                            state.note_held = false;
+                        }
+                    }
+                    0x80 => {
+                        state.engine.handle_midi(MidiMessage::NoteOff {
+                            channel,
+                            note: data1,
+                        });
+                        state.note_held = false;
+                    }
+                    0xB0 => match data1 {
+                        1 => {
+                            state.mod_wheel.store(data2, Ordering::SeqCst);
+                            state.engine.handle_midi(MidiMessage::ModWheel {
+                                channel,
+                                value: data2 as f32 / 127.0,
+                            });
+                        }
+                        64 => {
+                            if data2 >= 64 {
+                                state.engine.handle_midi(MidiMessage::SustainOn { channel });
+                            } else {
+                                state
+                                    .engine
+                                    .handle_midi(MidiMessage::SustainOff { channel });
+                            }
+                        }
+                        123 | 120 => {
+                            state
+                                .engine
+                                .handle_midi(MidiMessage::AllNotesOff { channel });
+                        }
+                        _ => {}
+                    },
+                    0xE0 => {
+                        let bend_value = ((data2 as u16) << 7) | (data1 as u16);
+                        let normalized = (bend_value as f32 - 8192.0) / 8192.0;
+                        state.engine.handle_midi(MidiMessage::PitchBend {
+                            channel,
+                            value: normalized,
+                        });
+                    }
+                    0xD0 => {
+                        let current_note = state.current_note.load(Ordering::SeqCst);
+                        state.engine.handle_midi(MidiMessage::Aftertouch {
+                            channel,
+                            note: current_note,
+                            value: data1 as f32 / 127.0,
+                        });
+                    }
+                    _ => {}
+                }
+            }
+        },
+        (),
+    )?;
+
+    println!("Connected to MIDI input: {}", port_name);
+    Ok(())
+}
+
+fn run_audio(state: &Arc<Mutex<SynthState>>, sample_rate: usize) {
     let host = cpal::default_host();
     let device = host
         .default_output_device()
@@ -77,7 +301,6 @@ fn run_interactive(state: &Arc<Mutex<SynthState>>, sample_rate: usize, _buffer_s
     let config = device.default_output_config().unwrap();
 
     println!("Using audio device: {}", device.name().unwrap());
-    println!("Starting audio thread...");
 
     let state_clone = state.clone();
 
@@ -111,11 +334,7 @@ fn run_interactive(state: &Arc<Mutex<SynthState>>, sample_rate: usize, _buffer_s
 
     stream.play().expect("Failed to start stream");
 
-    println!("Audio stream started. Press Ctrl+C to exit or wait 60 seconds...");
-
-    while running.load(Ordering::SeqCst) {
-        std::thread::sleep(std::time::Duration::from_millis(100));
-    }
+    std::thread::sleep(std::time::Duration::from_secs(60));
 
     println!("Shutting down...");
 }
