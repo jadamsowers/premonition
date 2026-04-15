@@ -42,7 +42,7 @@ const DEFAULTS = {
 // Used as fallback when fetch() is unavailable (e.g., file:// protocol)
 const BUILTIN_PRESETS = {
   init: {
-    osc1_wave:0, osc1_freq:440.0, osc1_fine:0.0, osc1_pulse_width:0.5, osc1_pitch_env_depth:0.0,
+    osc1_wave:0, osc1_freq:0.0, osc1_fine:0.0, osc1_pulse_width:0.5, osc1_pitch_env_depth:0.0,
     osc2_wave:0, osc2_coarse:0.0, osc2_fine:0.0, osc2_pulse_width:0.5,
     noise_level:0.0, osc_mix:0.5,
     filter_cutoff:5000.0, filter_resonance:0.0, filter_env_amount:0.0, filter_keyboard_tracking:0.0,
@@ -54,7 +54,7 @@ const BUILTIN_PRESETS = {
     slop:0.1, unison_voices:1, unison_detune:0.0, master_volume:0.75,
   },
   bass: {
-    osc1_wave:1, osc1_freq:220.0, osc1_fine:0.0, osc1_pulse_width:0.5, osc1_pitch_env_depth:0.0,
+    osc1_wave:1, osc1_freq:0.0, osc1_fine:0.0, osc1_pulse_width:0.5, osc1_pitch_env_depth:0.0,
     osc2_wave:0, osc2_coarse:-12.0, osc2_fine:0.05, osc2_pulse_width:0.5,
     noise_level:0.05, osc_mix:0.7,
     filter_cutoff:400.0, filter_resonance:0.3, filter_env_amount:0.8, filter_keyboard_tracking:0.5,
@@ -66,7 +66,7 @@ const BUILTIN_PRESETS = {
     slop:0.2, unison_voices:2, unison_detune:0.1, master_volume:1.0,
   },
   pad: {
-    osc1_wave:2, osc1_freq:440.0, osc1_fine:0.0, osc1_pulse_width:0.5, osc1_pitch_env_depth:0.0,
+    osc1_wave:2, osc1_freq:0.0, osc1_fine:0.0, osc1_pulse_width:0.5, osc1_pitch_env_depth:0.0,
     osc2_wave:2, osc2_coarse:0.01, osc2_fine:-0.05, osc2_pulse_width:0.5,
     noise_level:0.0, osc_mix:0.5,
     filter_cutoff:1200.0, filter_resonance:0.2, filter_env_amount:0.4, filter_keyboard_tracking:0.8,
@@ -78,6 +78,7 @@ const BUILTIN_PRESETS = {
     slop:0.15, unison_voices:4, unison_detune:0.2, master_volume:0.8,
   },
 };
+
 
 // Map JSON field name → parameter ID
 const FIELD_TO_PARAM = {
@@ -105,13 +106,14 @@ const FIELD_TO_PARAM = {
 function toNorm(id, v) {
   switch (id) {
     case P.OSC1_WAVE:    return Math.min(1, v / 2);
-    case P.OSC1_FREQ:    return Math.max(0, Math.min(1, (v - 20) / 19980));
-    case P.OSC1_FINE:    return Math.max(0, Math.min(1, v / 14 + 0.5));
+    case P.OSC1_FREQ:    return Math.max(0, Math.min(1, v / 48 + 0.5));
+    case P.OSC1_FINE:    return Math.max(0, Math.min(1, v / 2 + 0.5));
     case P.OSC1_PW:      return Math.max(0, Math.min(1, v));
     case P.OSC1_PENV:    return Math.max(0, Math.min(1, v / 0.5 + 0.5));
     case P.OSC2_WAVE:    return Math.min(1, v / 3);
     case P.OSC2_COARSE:  return Math.max(0, Math.min(1, v / 48 + 0.5));
-    case P.OSC2_FINE:    return Math.max(0, Math.min(1, v / 14 + 0.5));
+    case P.OSC2_FINE:    return Math.max(0, Math.min(1, v / 2 + 0.5));
+
     case P.OSC2_PW:      return Math.max(0, Math.min(1, v));
     case P.NOISE:        return Math.max(0, Math.min(1, v));
     case P.OSC_MIX:      return Math.max(0, Math.min(1, v));
