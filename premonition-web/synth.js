@@ -45,9 +45,9 @@ const BUILTIN_PRESETS = {
     osc1_wave:0, osc1_freq:0.0, osc1_fine:0.0, osc1_pulse_width:0.5, osc1_pitch_env_depth:0.0,
     osc2_wave:0, osc2_coarse:0.0, osc2_fine:0.0, osc2_pulse_width:0.5,
     noise_level:0.0, osc_mix:0.5,
-    filter_cutoff:5000.0, filter_resonance:0.0, filter_env_amount:0.0, filter_keyboard_tracking:0.0,
-    amp_attack:0.001, amp_decay:0.2, amp_sustain:1.0, amp_release:0.3,
-    filter_attack:0.001, filter_decay:0.2, filter_sustain:1.0, filter_release:0.3,
+    filter_cutoff:20000.0, filter_resonance:0.0, filter_env_amount:0.0, filter_keyboard_tracking:0.0,
+    amp_attack:0.01, amp_decay:0.2, amp_sustain:1.0, amp_release:0.3,
+    filter_attack:0.01, filter_decay:0.2, filter_sustain:1.0, filter_release:0.3,
     lfo_rate:1.0, lfo_wave:0, lfo_depth:0.5,
     lfo_to_osc:0.0, lfo_to_filter:0.0, lfo_to_pw:0.0,
     poly_mod_osc2_to_osc1_freq:0.0, poly_mod_osc2_to_osc1_pw:0.0, poly_mod_filter_env_to_filter:0.0,
@@ -105,12 +105,12 @@ const FIELD_TO_PARAM = {
 // Mirrors the inverse of Parameters::set() in Rust params.rs
 function toNorm(id, v) {
   switch (id) {
-    case P.OSC1_WAVE:    return Math.min(1, v / 2);
+    case P.OSC1_WAVE:    return Math.min(1, v / 1);
     case P.OSC1_FREQ:    return Math.max(0, Math.min(1, v / 48 + 0.5));
     case P.OSC1_FINE:    return Math.max(0, Math.min(1, v / 2 + 0.5));
     case P.OSC1_PW:      return Math.max(0, Math.min(1, v));
     case P.OSC1_PENV:    return Math.max(0, Math.min(1, v / 0.5 + 0.5));
-    case P.OSC2_WAVE:    return Math.min(1, v / 3);
+    case P.OSC2_WAVE:    return Math.min(1, v / 2);
     case P.OSC2_COARSE:  return Math.max(0, Math.min(1, v / 48 + 0.5));
     case P.OSC2_FINE:    return Math.max(0, Math.min(1, v / 2 + 0.5));
 
@@ -130,7 +130,7 @@ function toNorm(id, v) {
     case P.FLT_SUS:      return Math.max(0, Math.min(1, v));
     case P.FLT_REL:      return Math.max(0, Math.min(1, Math.cbrt(v / 10)));
     case P.LFO_RATE:     return Math.max(0, Math.min(1, Math.sqrt((v - 0.01) / 100)));
-    case P.LFO_WAVE:     return Math.min(1, v / 4);
+    case P.LFO_WAVE:     return Math.min(1, v / 3);
     case P.LFO_DEPTH:    return Math.max(0, Math.min(1, v));
     case P.LFO_OSC:      return Math.max(0, Math.min(1, v / 0.1 + 0.5));
     case P.LFO_FILT:     return Math.max(0, Math.min(1, v / 5000));
@@ -366,10 +366,6 @@ function applyPresetData(rawJson) {
     if (allKnobs.has(id))    allKnobs.get(id).setValue(n);
     if (allSwitches.has(id)) {
       const sw = allSwitches.get(id);
-      // Wave IDs are stored as integers in the JSON; round to nearest step
-      const steps = sw.count - 1;
-      const idx = steps > 0 ? Math.round(internal / (sw.paramId === P.OSC2_WAVE ? 1 : 1)) : 0;
-      // Use the raw integer directly for wave enums
       sw.setIndex(Math.round(internal));
     }
   }
@@ -693,9 +689,24 @@ function startOscilloscope() {
       // Real waveform from audio buffer
       const buf = engine.oscBuf;
       const len = buf.length;
-      const wp  = engine.oscWrPos;
+      let wp = engine.oscWrPos;
+      
+      // Compute range based on currently active notes (if any)
+      let highestNote = -1;
+      for (let n of activeNotes) highestNote = Math.max(highestNote, n);
+      let freq = 110.0; // Default rendering freq
+      if (highestNote > 0) {
+        freq = 440.0 * Math.pow(2, (highestNote - 69) / 12);
+      }
+      
+      const sr = engine.audioCtx.sampleRate;
+      // Draw 3 cycles of the fundamental (capped safely)
+      const samplesToDraw = Math.min(len, Math.max(20, Math.floor(3 * sr / freq)));
+      
       for (let x = 0; x < W; x++) {
-        const idx = (wp + Math.floor(x * len / W)) % len;
+        // Find position tracing backward from write pos so we see latest stable waveform
+        const offset = Math.floor((1 - x / W) * samplesToDraw);
+        const idx = (wp - offset + len) % len;
         const y   = midY - buf[idx] * (midY - 3);
         x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
       }

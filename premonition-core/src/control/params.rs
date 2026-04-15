@@ -195,13 +195,12 @@ impl Default for Parameters {
 impl Parameters {
     pub fn set(&mut self, param: ParameterId, value: f32) {
         match param {
-            ParameterId::Osc1Wave => self.osc1_wave = (value * 2.0) as u8,
+            ParameterId::Osc1Wave => self.osc1_wave = (value * 1.0).round() as u8,
             ParameterId::Osc1Freq => self.osc1_freq = (value - 0.5) * 48.0,
             ParameterId::Osc1Fine => self.osc1_fine = (value - 0.5) * 2.0,
-
             ParameterId::Osc1PulseWidth => self.osc1_pulse_width = value,
             ParameterId::Osc1PitchEnvDepth => self.osc1_pitch_env_depth = (value - 0.5) * 0.5,
-            ParameterId::Osc2Wave => self.osc2_wave = (value * 3.0) as u8,
+            ParameterId::Osc2Wave => self.osc2_wave = (value * 2.0).round() as u8,
             ParameterId::Osc2Coarse => self.osc2_coarse = (value - 0.5) * 48.0,
             ParameterId::Osc2Fine => self.osc2_fine = (value - 0.5) * 2.0,
             ParameterId::Osc2PulseWidth => self.osc2_pulse_width = value,
@@ -220,7 +219,7 @@ impl Parameters {
             ParameterId::FilterSustain => self.filter_sustain = value,
             ParameterId::FilterRelease => self.filter_release = value.powf(3.0) * 10.0,
             ParameterId::LfoRate => self.lfo_rate = 0.01 + value.powf(2.0) * 100.0,
-            ParameterId::LfoWave => self.lfo_wave = (value * 4.0) as u8,
+            ParameterId::LfoWave => self.lfo_wave = (value * 3.0).round() as u8,
             ParameterId::LfoDepth => self.lfo_depth = value,
             ParameterId::LfoToOsc => self.lfo_to_osc = (value - 0.5) * 0.1,
             ParameterId::LfoToFilter => self.lfo_to_filter = value * 5000.0,
@@ -241,12 +240,12 @@ impl Parameters {
 
     pub fn get(&self, param: ParameterId) -> f32 {
         match param {
-            ParameterId::Osc1Wave => self.osc1_wave as f32 / 2.0,
+            ParameterId::Osc1Wave => self.osc1_wave as f32 / 1.0,
             ParameterId::Osc1Freq => (self.osc1_freq / 48.0) + 0.5,
             ParameterId::Osc1Fine => (self.osc1_fine / 2.0) + 0.5,
             ParameterId::Osc1PulseWidth => self.osc1_pulse_width,
             ParameterId::Osc1PitchEnvDepth => (self.osc1_pitch_env_depth / 0.5) + 0.5,
-            ParameterId::Osc2Wave => self.osc2_wave as f32 / 3.0,
+            ParameterId::Osc2Wave => self.osc2_wave as f32 / 2.0,
             ParameterId::Osc2Coarse => (self.osc2_coarse / 48.0) + 0.5,
             ParameterId::Osc2Fine => (self.osc2_fine / 2.0) + 0.5,
             ParameterId::Osc2PulseWidth => self.osc2_pulse_width,
@@ -265,7 +264,7 @@ impl Parameters {
             ParameterId::FilterSustain => self.filter_sustain,
             ParameterId::FilterRelease => (self.filter_release / 10.0).powf(1.0 / 3.0),
             ParameterId::LfoRate => ((self.lfo_rate - 0.01) / 100.0).sqrt(),
-            ParameterId::LfoWave => self.lfo_wave as f32 / 4.0,
+            ParameterId::LfoWave => self.lfo_wave as f32 / 3.0,
             ParameterId::LfoDepth => self.lfo_depth,
             ParameterId::LfoToOsc => (self.lfo_to_osc / 0.1) + 0.5,
             ParameterId::LfoToFilter => self.lfo_to_filter / 5000.0,
