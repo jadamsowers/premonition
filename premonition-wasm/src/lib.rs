@@ -103,7 +103,7 @@ pub fn create_engine() -> WasmEngine {
 
 #[wasm_bindgen]
 pub fn get_param_count() -> u32 {
-    36
+    37
 }
 
 #[wasm_bindgen]
@@ -146,5 +146,6 @@ pub fn get_param_name(param_id: u32) -> String {
         ParameterId::UnisonVoices => "Unison Voices".to_string(),
         ParameterId::UnisonDetune => "Unison Detune".to_string(),
         ParameterId::MasterVolume => "Master Volume".to_string(),
+        ParameterId::Osc2LoFreq => "Osc2 Lo Freq".to_string(),
     }
 }
