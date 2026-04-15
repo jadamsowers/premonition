@@ -200,12 +200,12 @@ impl Parameters {
     pub fn set(&mut self, param: ParameterId, value: f32) {
         match param {
             ParameterId::Osc1Wave => self.osc1_wave = (value * 1.0).round() as u8,
-            ParameterId::Osc1Freq => self.osc1_freq = (value - 0.5) * 120.0,
+            ParameterId::Osc1Freq => self.osc1_freq = ((value - 0.5) * 10.0).round() * 12.0,
             ParameterId::Osc1Fine => self.osc1_fine = (value - 0.5) * 2.0,
             ParameterId::Osc1PulseWidth => self.osc1_pulse_width = value,
             ParameterId::Osc1PitchEnvDepth => self.osc1_pitch_env_depth = (value - 0.5) * 0.5,
             ParameterId::Osc2Wave => self.osc2_wave = (value * 2.0).round() as u8,
-            ParameterId::Osc2Coarse => self.osc2_coarse = (value - 0.5) * 120.0,
+            ParameterId::Osc2Coarse => self.osc2_coarse = ((value - 0.5) * 10.0).round() * 12.0,
             ParameterId::Osc2Fine => self.osc2_fine = (value - 0.5) * 2.0,
             ParameterId::Osc2PulseWidth => self.osc2_pulse_width = value,
             ParameterId::NoiseLevel => self.noise_level = value,
