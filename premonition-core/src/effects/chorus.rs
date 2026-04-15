@@ -59,6 +59,7 @@ impl Chorus {
         input * (1.0 - self.mix) + delayed * self.mix
     }
 
+    #[allow(dead_code)]
     pub fn process_stereo(&mut self, input_l: f32, input_r: f32) -> (f32, f32) {
         let lfo_l = (self.phase * 2.0 * PI).sin();
         let lfo_r = ((self.phase + 0.5) * 2.0 * PI).sin();
@@ -77,6 +78,7 @@ impl Chorus {
         )
     }
 
+    #[allow(dead_code)]
     fn get_delayed_sample(&mut self, lfo: f32) -> f32 {
         let delay_samples = (self.depth * self.sample_rate * (1.0 + lfo * 0.5)) as usize;
         let delay_samples = delay_samples.min(MAX_DELAY_SAMPLES - 1);
@@ -90,18 +92,22 @@ impl Chorus {
         self.buffer[read_pos]
     }
 
+    #[allow(dead_code)]
     pub fn set_depth(&mut self, depth: f32) {
         self.depth = depth.max(0.0).min(0.01);
     }
 
+    #[allow(dead_code)]
     pub fn set_rate(&mut self, rate: f32) {
         self.rate = rate.max(0.1).min(10.0);
     }
 
+    #[allow(dead_code)]
     pub fn set_mix(&mut self, mix: f32) {
         self.mix = mix.max(0.0).min(1.0);
     }
 
+    #[allow(dead_code)]
     pub fn set_feedback(&mut self, feedback: f32) {
         self.feedback = feedback.max(0.0).min(0.9);
     }

@@ -1,7 +1,5 @@
 //! Noise generator with pink tilt and per-voice variance.
 
-use num_traits::float::Float;
-
 pub struct Noise {
     voice_index: usize,
     pink_tilt: f32,
@@ -43,29 +41,26 @@ impl Noise {
     }
 
     fn generate_white_noise() -> f32 {
-        let x1: f32 = rand_simple();
-        let x2: f32 = rand_simple();
-        let x3: f32 = rand_simple();
+        let x1 = Self::rand();
+        let x2 = Self::rand();
+        let x3 = Self::rand();
 
         ((x1 + x2 + x3) / 3.0) * 2.0 - 1.0
     }
 
+    fn rand() -> f32 {
+        static mut STATE: u32 = 12345;
+        unsafe {
+            STATE = STATE.wrapping_mul(1103515245).wrapping_add(12345);
+            ((core::ptr::read_volatile(&raw const STATE) >> 16) as u32 & 0x7FFF) as f32 / 32768.0
+        }
+    }
+
+    #[allow(dead_code)]
     pub fn set_level_variance(&mut self, variance: f32) {
         self.level_variance = variance;
     }
 }
-
-fn rand_simple() -> f32 {
-    let result;
-    unsafe {
-        let seed = core::ptr::read_volatile(&STATE);
-        STATE = seed.wrapping_mul(1103515245).wrapping_add(12345);
-        result = ((STATE >> 16) as u32 & 0x7FFF) as f32 / 32768.0;
-    }
-    result
-}
-
-static mut STATE: u32 = 12345;
 
 impl Default for Noise {
     fn default() -> Self {

@@ -59,6 +59,7 @@ impl Delay {
         input * (1.0 - self.mix) + delayed * self.mix
     }
 
+    #[allow(dead_code)]
     pub fn process_stereo(&mut self, input_l: f32, input_r: f32, offset_ms: f32) -> (f32, f32) {
         self.buffer[self.write_pos] =
             (input_l + input_r) * 0.5 + self.lowpass_state * self.feedback;
@@ -93,18 +94,22 @@ impl Delay {
         )
     }
 
+    #[allow(dead_code)]
     pub fn set_time(&mut self, time_ms: f32) {
         self.time_ms = time_ms.max(1.0).min(2000.0);
     }
 
+    #[allow(dead_code)]
     pub fn set_feedback(&mut self, feedback: f32) {
         self.feedback = feedback.max(0.0).min(0.95);
     }
 
+    #[allow(dead_code)]
     pub fn set_mix(&mut self, mix: f32) {
         self.mix = mix.max(0.0).min(1.0);
     }
 
+    #[allow(dead_code)]
     pub fn set_filter(&mut self, cutoff_hz: f32) {
         self.filter_coeff = (1.0 / (1.0 + (self.sample_rate / (cutoff_hz * 2.0 * PI))))
             .max(0.0)

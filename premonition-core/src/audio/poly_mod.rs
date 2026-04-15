@@ -1,7 +1,5 @@
 //! Poly-Mod section for cross-modulation.
 
-use num_traits::float::Float;
-
 pub struct PolyMod {
     voice_index: usize,
 
@@ -30,13 +28,14 @@ impl PolyMod {
         self.last_osc2_sample = 0.0;
     }
 
+    #[allow(dead_code)]
     pub fn process(
         &mut self,
         osc2_sample: f32,
         filter_env_value: f32,
-        osc1_freq_mod: f32,
-        osc1_pw_mod: f32,
-        filter_mod: f32,
+        _osc1_freq_mod: f32,
+        _osc1_pw_mod: f32,
+        _filter_mod: f32,
     ) -> f32 {
         let bandwidth_limited_osc2 = (self.last_osc2_sample + osc2_sample) * 0.5;
         self.last_osc2_sample = osc2_sample;
@@ -52,12 +51,14 @@ impl PolyMod {
         total_mod
     }
 
+    #[allow(dead_code)]
     pub fn get_osc1_freq_mod(&self, osc2_sample: f32, params: &[f32; 3]) -> f32 {
         let depth = params[0];
         let bandwidth_limited = (self.last_osc2_sample + osc2_sample) * 0.5;
         bandwidth_limited * depth * self.get_asymmetry_factor()
     }
 
+    #[allow(dead_code)]
     pub fn get_osc1_pw_mod(&self, filter_env: f32, depth: f32) -> f32 {
         filter_env * depth * (1.0 + self.scaling_error)
     }
@@ -82,7 +83,8 @@ impl PolyMod {
         self.asymmetry = asymmetry;
     }
 
-    pub fn update_from_params(&mut self, osc1_freq: f32, osc1_pw: f32, filter: f32) {
+    #[allow(dead_code)]
+    pub fn update_from_params(&mut self, osc1_freq: f32, osc1_pw: f32, _filter: f32) {
         self.osc2_depth = osc1_freq;
         self.filter_env_depth = osc1_pw;
     }

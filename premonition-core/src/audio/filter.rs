@@ -1,7 +1,6 @@
 //! Curtis/SSM-style 4-pole low-pass filter.
 
 use crate::control::Parameters;
-use num_traits::float::Float;
 
 const PI: f32 = 3.14159265359;
 
@@ -84,7 +83,7 @@ impl Filter {
 
         let a1 = 1.0 / (1.0 + g * (g + k));
         let a2 = g * a1;
-        let a3 = g * a2;
+        let _a3 = g * a2;
 
         let input_with_feedback = input - (self.z4 * k);
 
@@ -117,6 +116,7 @@ impl Filter {
         output * envelope_depth_effect
     }
 
+    #[allow(dead_code)]
     pub fn process_self_oscillation(&mut self) -> f32 {
         if self.resonance > 0.9 {
             let osc_amp_target = (self.resonance - 0.9) * 10.0;
@@ -141,10 +141,12 @@ impl Filter {
         self.set_resonance(params.filter_resonance);
     }
 
+    #[allow(dead_code)]
     pub fn get_cutoff(&self) -> f32 {
         self.cutoff
     }
 
+    #[allow(dead_code)]
     pub fn get_resonance(&self) -> f32 {
         self.resonance
     }

@@ -1,7 +1,7 @@
 //! Voice structure containing all per-voice state.
 
 use crate::audio::{
-    Envelope, Filter, Imperfection, Lfo, Mixer, Noise, Oscillator, PolyMod, Vca, Waveform,
+    Envelope, Filter, Imperfection, Mixer, Noise, Oscillator, PolyMod, Vca, Waveform,
 };
 use crate::control::Parameters;
 

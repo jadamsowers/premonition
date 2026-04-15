@@ -157,195 +157,195 @@ Each host (JUCE, WASM, CLI) must implement:
 ## Phase 1: Core DSP Infrastructure
 
 ### 1.1 Project Structure & Build System
-- [ ] Initialize `premonition-core` Rust crate (`no_std` compatible)
-- [ ] Configure `premonition-wasm` for WebAssembly target
-- [ ] Configure `premonition-juce` JUCE project
-- [ ] Configure `premonition-cli` for native builds
-- [ ] Set up audio buffer processing pipeline
-- [ ] Define sample rate configuration (44.1kHz, 48kHz, 96kHz support)
-- [ ] Implement voice manager with round-robin allocation
-- [ ] Create thread-safe parameter system (atomic for cross-thread communication)
-- [ ] Define FFI exports for host integration
+- [x] Initialize `premonition-core` Rust crate (`no_std` compatible)
+- [x] Configure `premonition-wasm` for WebAssembly target
+- [x] Configure `premonition-juce` JUCE project
+- [x] Configure `premonition-cli` for native builds
+- [x] Set up audio buffer processing pipeline
+- [x] Define sample rate configuration (44.1kHz, 48kHz, 96kHz support)
+- [x] Implement voice manager with round-robin allocation
+- [x] Create thread-safe parameter system (atomic for cross-thread communication)
+- [x] Define FFI exports for host integration
 
 ### 1.2 Voice Architecture
-- [ ] Define `Voice` struct with all per-voice state
-- [ ] Implement per-voice random seed for imperfection system
-- [ ] Create voice allocation/disallocation logic
-- [ ] Handle voice stealing with click detection
-- [ ] Implement unison mode (voice stacking)
+- [x] Define `Voice` struct with all per-voice state
+- [x] Implement per-voice random seed for imperfection system
+- [x] Create voice allocation/disallocation logic
+- [x] Handle voice stealing with click detection
+- [x] Implement unison mode (voice stacking)
 
 ### 1.3 Per-Voice Imperfection System
-- [ ] `Slop` parameter (0.0-1.0) controlling imperfection intensity
-- [ ] Per-voice oscillator drift parameters (slow random process)
-- [ ] Per-voice filter cutoff offset (component tolerance)
-- [ ] Per-voice envelope timing variance
-- [ ] Per-voice mixer gain variance
-- [ ] Per-voice DC offset
+- [x] `Slop` parameter (0.0-1.0) controlling imperfection intensity
+- [x] Per-voice oscillator drift parameters (slow random process)
+- [x] Per-voice filter cutoff offset (component tolerance)
+- [x] Per-voice envelope timing variance
+- [x] Per-voice mixer gain variance
+- [x] Per-voice DC offset
 
 ---
 
 ## Phase 2: Oscillator Section
 
 ### 2.1 VCO1 Implementation
-- [ ] Waveform generation: Saw, Pulse
-- [ ] Frequency with slight quantization/rounding
-- [ ] Fine tune (±7 semitones with imperfect scaling)
-- [ ] Pulse width with nonlinear response near extremes
-- [ ] Hard sync to VCO2 (non-sample-accurate reset)
-- [ ] LFO → pitch modulation (with delay/lag)
-- [ ] Envelope → pitch modulation (limited depth)
+- [x] Waveform generation: Saw, Pulse
+- [x] Frequency with slight quantization/rounding
+- [x] Fine tune (±7 semitones with imperfect scaling)
+- [x] Pulse width with nonlinear response near extremes
+- [x] Hard sync to VCO2 (non-sample-accurate reset)
+- [x] LFO → pitch modulation (with delay/lag)
+- [x] Envelope → pitch modulation (limited depth)
 
 ### 2.2 VCO2 Implementation
-- [ ] Waveform generation: Saw, Pulse, Triangle (imperfect)
-- [ ] Coarse tune (semitone steps with detune error)
-- [ ] Fine tune (imperfect scaling)
-- [ ] PW with different response curve than VCO1
-- [ ] LFO → pitch modulation
-- [ ] Audio-rate modulation of VCO1 (bandwidth-limited)
-- [ ] Variable sync behavior per voice
+- [x] Waveform generation: Saw, Pulse, Triangle (imperfect)
+- [x] Coarse tune (semitone steps with detune error)
+- [x] Fine tune (imperfect scaling)
+- [x] PW with different response curve than VCO1
+- [x] LFO → pitch modulation
+- [x] Audio-rate modulation of VCO1 (bandwidth-limited)
+- [x] Variable sync behavior per voice
 
 ### 2.3 Oscillator Drift System
-- [ ] Slow chaotic drift model (not purely random)
-- [ ] Temperature-like instability simulation
-- [ ] Per-voice unique drift characteristics
-- [ ] Slop parameter integration
+- [x] Slow chaotic drift model (not purely random)
+- [x] Temperature-like instability simulation
+- [x] Per-voice unique drift characteristics
+- [x] Slop parameter integration
 
 ---
 
 ## Phase 3: Noise & Mixer
 
 ### 3.1 Noise Generator
-- [ ] White noise with pink tilt
-- [ ] Level variance between voices
-- [ ] Amplitude instability modeling
+- [x] White noise with pink tilt
+- [x] Level variance between voices
+- [x] Amplitude instability modeling
 
 ### 3.2 Mixer Section
-- [ ] Three input channels: Osc1, Osc2, Noise
-- [ ] Per-channel gain with soft saturation (~80%+)
-- [ ] Nonlinear summing (harmonic distortion)
-- [ ] Intermodulation artifacts
-- [ ] Per-voice gain variance
+- [x] Three input channels: Osc1, Osc2, Noise
+- [x] Per-channel gain with soft saturation (~80%+)
+- [x] Nonlinear summing (harmonic distortion)
+- [x] Intermodulation artifacts
+- [x] Per-voice gain variance
 
 ---
 
 ## Phase 4: Filter Section
 
 ### 4.1 4-Pole LPF Implementation
-- [ ] Curtis or SSM filter topology selection
-- [ ] 24 dB/octave rolloff
-- [ ] Cutoff frequency with per-voice variance
-- [ ] Resonance with nonlinear peak shifting
-- [ ] Self-oscillation (amplitude instability)
-- [ ] Approximate keyboard tracking
+- [x] Curtis or SSM filter topology selection
+- [x] 24 dB/octave rolloff
+- [x] Cutoff frequency with per-voice variance
+- [x] Resonance with nonlinear peak shifting
+- [x] Self-oscillation (amplitude instability)
+- [x] Approximate keyboard tracking
 
 ### 4.2 Filter Interactions
-- [ ] Envelope amount interacting with input level
-- [ ] Resonance behavior at high input levels
-- [ ] Filter modulation depth nonlinearity
+- [x] Envelope amount interacting with input level
+- [x] Resonance behavior at high input levels
+- [x] Filter modulation depth nonlinearity
 
 ---
 
 ## Phase 5: Amplifier (VCA)
 
 ### 5.1 OTA-Style VCA
-- [ ] Level-dependent distortion modeling
-- [ ] Envelope-to-VCA response (imperfect linearity)
-- [ ] Velocity sensitivity (optional, bypassable)
+- [x] Level-dependent distortion modeling
+- [x] Envelope-to-VCA response (imperfect linearity)
+- [x] Velocity sensitivity (optional, bypassable)
 
 ---
 
 ## Phase 6: Modulation System
 
 ### 6.1 Envelopes (2x ADSR per voice)
-- [ ] Attack (minimum ~2-4ms, exponential curve)
-- [ ] Decay with per-voice timing variance
-- [ ] Sustain with per-voice level differences
-- [ ] Release with exponential curves
-- [ ] Retrigger timing jitter
-- [ ] Output: Filter Envelope, Amp Envelope
+- [x] Attack (minimum ~2-4ms, exponential curve)
+- [x] Decay with per-voice timing variance
+- [x] Sustain with per-voice level differences
+- [x] Release with exponential curves
+- [x] Retrigger timing jitter
+- [x] Output: Filter Envelope, Amp Envelope
 
 ### 6.2 Global LFO
-- [ ] Waveforms: Triangle, Saw, Square, Random (S&H)
-- [ ] Rate with internal drift
-- [ ] Nonlinear depth across range
-- [ ] Destinations: Osc pitch, PW, filter cutoff
+- [x] Waveforms: Triangle, Saw, Square, Random (S&H)
+- [x] Rate with internal drift
+- [x] Nonlinear depth across range
+- [x] Destinations: Osc pitch, PW, filter cutoff
 
 ### 6.3 Poly-Mod Section
-- [ ] Sources: Osc2 (audio-rate), Filter Envelope
-- [ ] Destinations: Osc1 freq, Osc1 PW, Filter cutoff
-- [ ] Asymmetrical modulation depth
-- [ ] Bandwidth-limited audio-rate modulation
-- [ ] Scaling errors
+- [x] Sources: Osc2 (audio-rate), Filter Envelope
+- [x] Destinations: Osc1 freq, Osc1 PW, Filter cutoff
+- [x] Asymmetrical modulation depth
+- [x] Bandwidth-limited audio-rate modulation
+- [x] Scaling errors
 
 ---
 
 ## Phase 7: Output Stage
 
 ### 7.1 Voice Summing
-- [ ] Mix all active voices
-- [ ] Soft-clipping stage
-- [ ] Output noise modeling
-- [ ] Asymmetry correction
+- [x] Mix all active voices
+- [x] Soft-clipping stage
+- [x] Output noise modeling
+- [x] Asymmetry correction
 
 ### 7.2 Stereo Enhancement (Optional)
-- [ ] Per-voice stereo spread
-- [ ] Bypass option for authentic mode
+- [x] Per-voice stereo spread
+- [x] Bypass option for authentic mode
 
 ---
 
 ## Phase 8: MIDI & Control
 
 ### 8.1 MIDI Input
-- [ ] Note On/Off handling
-- [ ] Velocity → Amp (optional)
-- [ ] Pitch bend with range
-- [ ] Mod wheel → LFO depth
-- [ ] Sustain pedal
+- [x] Note On/Off handling
+- [x] Velocity → Amp (optional)
+- [x] Pitch bend with range
+- [x] Mod wheel → LFO depth
+- [x] Sustain pedal
 
 ### 8.2 Modern Enhancements (Bypassable)
-- [ ] Velocity → Filter/AMP
-- [ ] Aftertouch → Pitch/Filter
-- [ ] MPE support
+- [x] Velocity → Filter/AMP
+- [x] Aftertouch → Pitch/Filter
+- [x] MPE support
 
 ### 8.3 Parameter System
-- [ ] All synth parameters exposed
-- [ ] Smoothing/interpolation for parameter changes
+- [x] All synth parameters exposed
+- [x] Smoothing/interpolation for parameter changes
 - [ ] MIDI CC mapping
 
 ---
 
 ## Phase 9: Effects (Optional)
 
-- [ ] Chorus (authentic BBD-style)
-- [ ] Delay
-- [ ] Reverb
-- [ ] Global bypass for authentic mode
+- [x] Chorus (authentic BBD-style)
+- [x] Delay
+- [x] Reverb
+- [x] Global bypass for authentic mode
 
 ---
 
 ## Phase 10: Host Adapters
 
 ### 10.1 JUCE Wrapper (VST/AU)
-- [ ] Create JUCE project via Projucer
-- [ ] Implement `AudioProcessor` subclass
+- [x] Create JUCE project via Projucer
+- [x] Implement `AudioProcessor` subclass
 - [ ] Bind to Rust core via FFI/Cargo build
-- [ ] Handle audio processing callbacks
-- [ ] Route MIDI messages to engine
-- [ ] Implement parameter state (JuceVST or VST3)
+- [x] Handle audio processing callbacks
+- [x] Route MIDI messages to engine
+- [x] Implement parameter state (JuceVST or VST3)
 - [ ] Basic editor (or bridge to web UI)
 - [ ] Build for VST2, VST3, AU targets
 
 ### 10.2 WebAssembly Build
-- [ ] Configure `wasm-pack` build
-- [ ] Export engine functions via `wasm-bindgen`
-- [ ] Create JavaScript wrapper class
+- [x] Configure `wasm-pack` build
+- [x] Export engine functions via `wasm-bindgen`
+- [x] Create JavaScript wrapper class
 - [ ] Web Audio API integration
 - [ ] Parameter binding helpers
 - [ ] Build and test in browser
 - [ ] Performance optimization (wasm-opt)
 
 ### 10.3 Standalone CLI
-- [ ] Implement audio I/O with `cpal` or `rodio`
+- [x] Implement audio I/O with `cpal` or `rodio`
 - [ ] Add MIDI input support (`rtmidi` or similar)
 - [ ] Optional: Add TUI with `ratatui` or `cursive`
 - [ ] Optional: Headless mode for server/audio rendering

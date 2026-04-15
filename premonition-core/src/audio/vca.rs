@@ -1,7 +1,5 @@
 //! OTA-style voltage-controlled amplifier.
 
-use num_traits::float::Float;
-
 pub struct Vca {
     voice_index: usize,
     velocity_sensitivity: f32,
@@ -42,6 +40,7 @@ impl Vca {
         output_with_error
     }
 
+    #[allow(dead_code)]
     pub fn set_gain(&mut self, gain: f32) {
         self.gain = gain;
     }
@@ -50,6 +49,7 @@ impl Vca {
         self.velocity_sensitivity = sensitivity;
     }
 
+    #[allow(dead_code)]
     pub fn set_distortion(&mut self, amount: f32) {
         self.distortion = amount;
     }

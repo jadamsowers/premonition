@@ -1,6 +1,7 @@
 //! Premonition CLI - Standalone synthesizer application.
 
 use clap::Parser;
+use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
 use premonition_core::prelude::*;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
@@ -60,14 +61,14 @@ fn main() {
     run_interactive(&state, args.sample_rate, args.buffer_size);
 }
 
-fn run_interactive(state: &Arc<Mutex<SynthState>>, sample_rate: usize, buffer_size: usize) {
+fn run_interactive(state: &Arc<Mutex<SynthState>>, sample_rate: usize, _buffer_size: usize) {
     let running = Arc::new(AtomicBool::new(true));
     let r = running.clone();
 
-    ctrlc::set_handler(move || {
+    std::thread::spawn(move || {
+        std::thread::sleep(std::time::Duration::from_secs(60));
         r.store(false, Ordering::SeqCst);
-    })
-    .expect("Error setting Ctrl-C handler");
+    });
 
     let host = cpal::default_host();
     let device = host
@@ -83,36 +84,34 @@ fn run_interactive(state: &Arc<Mutex<SynthState>>, sample_rate: usize, buffer_si
     let err_fn = |err| eprintln!("Error in audio thread: {}", err);
 
     let stream = match config.sample_format() {
-        cpal::SampleFormat::F32 => {
-            let state_inner = state_clone;
-            device.build_output_stream(
-                &config.into(),
-                move |data: &mut [f32], _: &cpal::OutputCallbackInfo| {
-                    let mut state = state_inner.lock().unwrap();
-                    let stereo = data.chunks_mut(2);
+        cpal::SampleFormat::F32 => device.build_output_stream(
+            &config.into(),
+            move |data: &mut [f32], _: &cpal::OutputCallbackInfo| {
+                let mut state = state_clone.lock().unwrap();
+                let stereo = data.chunks_mut(2);
 
-                    for frame in stereo {
-                        let (mut left, mut right) = ([0.0f32], [0.0f32]);
-                        state
-                            .engine
-                            .process(&mut left, &mut right, 1, sample_rate as f32);
+                for frame in stereo {
+                    let (mut left, mut right) = ([0.0f32], [0.0f32]);
+                    state
+                        .engine
+                        .process(&mut left, &mut right, 1, sample_rate as f32);
 
-                        if frame.len() >= 2 {
-                            frame[0] = left[0];
-                            frame[1] = right[0];
-                        }
+                    if frame.len() >= 2 {
+                        frame[0] = left[0];
+                        frame[1] = right[0];
                     }
-                },
-                err_fn,
-            )
-        }
+                }
+            },
+            err_fn,
+            None,
+        ),
         _ => panic!("Unsupported sample format"),
     }
     .unwrap();
 
     stream.play().expect("Failed to start stream");
 
-    println!("Audio stream started. Press Ctrl+C to exit...");
+    println!("Audio stream started. Press Ctrl+C to exit or wait 60 seconds...");
 
     while running.load(Ordering::SeqCst) {
         std::thread::sleep(std::time::Duration::from_millis(100));
@@ -136,43 +135,5 @@ fn load_preset(engine: &mut Engine, path: &str) {
         Err(e) => {
             eprintln!("Failed to read preset file: {}", e);
         }
-    }
-}
-
-mod ctrlc {
-    use std::sync::atomic::{AtomicBool, Ordering};
-    use std::sync::Arc;
-    use std::thread;
-    use std::time::Duration;
-
-    static RUNNING: AtomicBool = AtomicBool::new(true);
-
-    pub fn set_handler<F>(mut handler: F) -> Result<(), Box<dyn std::error::Error>>
-    where
-        F: FnMut() + Send + 'static,
-    {
-        let running = Arc::new(RUNNING);
-        let r = running.clone();
-
-        thread::spawn(move || {
-            let mut buf = [0u8; 1];
-            while r.load(Ordering::SeqCst) {
-                if let Ok(()) = std::io::stdin().read(&mut buf) {
-                    if buf[0] == 3 {
-                        handler();
-                        break;
-                    }
-                }
-                thread::sleep(Duration::from_millis(10));
-            }
-        });
-
-        Ok(())
-    }
-}
-
-impl std::io::Read for std::io::Stdin {
-    fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
-        Ok(0)
     }
 }

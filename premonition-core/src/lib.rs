@@ -24,7 +24,7 @@ pub mod prelude;
 
 use alloc::boxed::Box;
 use audio::Engine;
-use control::{MidiMessage, ParameterId, Parameters};
+use control::{MidiMessage, ParameterId};
 
 #[no_mangle]
 pub extern "C" fn premonition_create() -> *mut Engine {
@@ -35,7 +35,7 @@ pub extern "C" fn premonition_create() -> *mut Engine {
 #[no_mangle]
 pub extern "C" fn premonition_destroy(engine: *mut Engine) {
     if !engine.is_null() {
-        unsafe { Box::from_raw(engine) };
+        unsafe { drop(Box::from_raw(engine)) }
     }
 }
 

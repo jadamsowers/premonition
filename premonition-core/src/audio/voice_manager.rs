@@ -126,6 +126,7 @@ impl VoiceManager {
         }
     }
 
+    #[allow(dead_code)]
     pub fn all_notes_off(&mut self) {
         for voice in &mut self.voices {
             voice.active = false;
@@ -134,6 +135,7 @@ impl VoiceManager {
         }
     }
 
+    #[allow(dead_code)]
     pub fn active_voice_count(&self) -> usize {
         self.voices.iter().filter(|v| v.is_active()).count()
     }

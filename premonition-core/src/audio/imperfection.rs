@@ -1,6 +1,6 @@
 //! Per-voice imperfection system (Slop).
 
-use num_traits::float::Float;
+const PI: f32 = 3.14159265359;
 
 pub struct Imperfection {
     pub voice_index: usize,
@@ -63,6 +63,7 @@ impl Imperfection {
         self.osc_drift = self.osc_drift.max(-50.0).min(50.0);
     }
 
+    #[allow(dead_code)]
     pub fn apply_slop(&mut self, slop: f32) {
         let slop_factor = slop.max(0.0).min(1.0);
 
@@ -80,30 +81,37 @@ impl Imperfection {
             ((Self::seeded_random(self.seed.wrapping_add(700)) * 0.1) - 0.05) * slop_factor;
     }
 
+    #[allow(dead_code)]
     pub fn get_osc_drift(&self) -> f32 {
         self.osc_drift
     }
 
+    #[allow(dead_code)]
     pub fn get_filter_cutoff_offset(&self) -> f32 {
         self.filter_cutoff_offset
     }
 
+    #[allow(dead_code)]
     pub fn get_envelope_timing_offset(&self) -> f32 {
         self.envelope_timing_offset
     }
 
+    #[allow(dead_code)]
     pub fn get_envelope_curve_variance(&self) -> f32 {
         self.envelope_curve_variance
     }
 
+    #[allow(dead_code)]
     pub fn get_mixer_gain_variance(&self) -> f32 {
         self.mixer_gain_variance
     }
 
+    #[allow(dead_code)]
     pub fn get_pan_position(&self) -> f32 {
         self.pan_position
     }
 
+    #[allow(dead_code)]
     pub fn get_filter_env_offset(&self) -> f32 {
         self.filter_env_offset
     }
@@ -113,8 +121,6 @@ impl Imperfection {
         ((x >> 16) as u32 & 0x7FFF) as f32 / 32768.0
     }
 }
-
-const PI: f32 = 3.14159265359;
 
 impl Default for Imperfection {
     fn default() -> Self {

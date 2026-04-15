@@ -1,7 +1,5 @@
 //! Simple reverb using multiple delay lines (Schroeder reverb style).
 
-use num_traits::float::Float;
-
 const NUM_COMB_FILTERS: usize = 4;
 const NUM_ALLPASS_FILTERS: usize = 2;
 
@@ -14,7 +12,7 @@ struct CombFilter {
 }
 
 impl CombFilter {
-    fn new(delay_samples: usize, feedback: f32, damp: f32) -> Self {
+    fn new(_delay_samples: usize, feedback: f32, damp: f32) -> Self {
         Self {
             buffer: [0.0f32; 2048],
             write_pos: 0,
@@ -43,7 +41,7 @@ struct AllpassFilter {
 }
 
 impl AllpassFilter {
-    fn new(delay_samples: usize, feedback: f32) -> Self {
+    fn new(_delay_samples: usize, feedback: f32) -> Self {
         Self {
             buffer: [0.0f32; 512],
             write_pos: 0,
@@ -84,7 +82,7 @@ impl Reverb {
             CombFilter::new(comb_delays[3], 0.84, 0.2),
         ];
 
-        for (i, cf) in comb_filters.iter_mut().enumerate() {
+        for (_i, cf) in comb_filters.iter_mut().enumerate() {
             cf.buffer = [0.0f32; 2048];
             cf.write_pos = 0;
         }
@@ -136,6 +134,7 @@ impl Reverb {
         input_with_dry + allpass_output * self.wet
     }
 
+    #[allow(dead_code)]
     pub fn process_stereo(&mut self, input_l: f32, input_r: f32) -> (f32, f32) {
         let mono = (input_l + input_r) * 0.5;
         let reverb_mono = self.process_sample(mono);
@@ -146,11 +145,13 @@ impl Reverb {
         )
     }
 
+    #[allow(dead_code)]
     pub fn set_wet(&mut self, wet: f32) {
         self.wet = wet.max(0.0).min(1.0);
         self.dry = 1.0 - self.wet * 0.5;
     }
 
+    #[allow(dead_code)]
     pub fn set_room_size(&mut self, size: f32) {
         self.room_size = size.max(0.0).min(1.0);
         let feedback = 0.7 + (self.room_size * 0.28);
@@ -160,6 +161,7 @@ impl Reverb {
         }
     }
 
+    #[allow(dead_code)]
     pub fn set_damping(&mut self, damp: f32) {
         self.damping = damp.max(0.0).min(1.0);
 

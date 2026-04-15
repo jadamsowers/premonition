@@ -1,7 +1,6 @@
 //! ADSR envelope generator with analog-style timing and imperfections.
 
 use crate::control::Parameters;
-use num_traits::float::Float;
 
 #[derive(Clone, Copy, PartialEq)]
 pub enum EnvelopeStage {
@@ -69,7 +68,7 @@ impl Envelope {
         self.stage_value = self.value;
     }
 
-    pub fn process(&mut self, params: &Parameters) {
+    pub fn process(&mut self, _params: &Parameters) {
         if self.retrigger_counter > 0.0 {
             self.retrigger_counter -= 1.0;
             return;
@@ -130,10 +129,12 @@ impl Envelope {
         self.stage == EnvelopeStage::Idle && self.value < 0.001
     }
 
+    #[allow(dead_code)]
     pub fn is_active(&self) -> bool {
         !self.is_idle()
     }
 
+    #[allow(dead_code)]
     pub fn get_stage(&self) -> EnvelopeStage {
         self.stage
     }
@@ -145,6 +146,7 @@ impl Envelope {
         self.release_time = params.amp_release;
     }
 
+    #[allow(dead_code)]
     pub fn update_filter_params(&mut self, params: &Parameters) {
         self.attack_time = params.filter_attack;
         self.decay_time = params.filter_decay;

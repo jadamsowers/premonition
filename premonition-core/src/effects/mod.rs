@@ -41,6 +41,7 @@ impl EffectsChain {
         self.reverb.process_sample(with_delay)
     }
 
+    #[allow(dead_code)]
     pub fn set_enabled(&mut self, enabled: bool) {
         self.enabled = enabled;
     }

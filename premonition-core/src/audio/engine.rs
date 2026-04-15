@@ -2,7 +2,6 @@
 
 use crate::audio::{EffectsChain, Lfo, OutputStage, VoiceManager};
 use crate::control::{MidiMessage, ParameterId, Parameters};
-use crate::effects;
 
 const MAX_VOICES: usize = 8;
 const STEREO_SPREAD: f32 = 0.3;

@@ -129,10 +129,12 @@ impl Lfo {
         };
     }
 
+    #[allow(dead_code)]
     pub fn set_rate(&mut self, rate: f32) {
         self.rate = rate;
     }
 
+    #[allow(dead_code)]
     pub fn set_waveform(&mut self, waveform: LfoWaveform) {
         self.waveform = waveform;
     }

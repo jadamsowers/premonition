@@ -1,5 +1,6 @@
 //! Parameter smoothing for click-free changes.
 
+#[allow(dead_code)]
 pub struct ParameterSmoother {
     current: f32,
     target: f32,
@@ -76,6 +77,7 @@ impl Default for ParameterSmoother {
     }
 }
 
+#[allow(dead_code)]
 pub struct MultiSmoother {
     smoothers: [ParameterSmoother; 36],
 }

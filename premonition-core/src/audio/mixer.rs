@@ -1,7 +1,6 @@
 //! Three-input mixer with soft saturation and per-voice variance.
 
 use crate::control::Parameters;
-use num_traits::float::Float;
 
 pub struct Mixer {
     voice_index: usize,
@@ -14,7 +13,7 @@ pub struct Mixer {
 
 impl Mixer {
     pub fn new(voice_index: usize) -> Self {
-        let variance = ((voice_index as f32 * 5.31).sin() * 0.05).abs();
+        let _variance = ((voice_index as f32 * 5.31).sin() * 0.05).abs();
         Self {
             voice_index,
             osc1_gain: 1.0,
@@ -72,18 +71,22 @@ impl Mixer {
         thd.min(1.0)
     }
 
+    #[allow(dead_code)]
     pub fn set_osc1_gain(&mut self, gain: f32) {
         self.osc1_gain = gain;
     }
 
+    #[allow(dead_code)]
     pub fn set_osc2_gain(&mut self, gain: f32) {
         self.osc2_gain = gain;
     }
 
+    #[allow(dead_code)]
     pub fn set_noise_gain(&mut self, gain: f32) {
         self.noise_gain = gain;
     }
 
+    #[allow(dead_code)]
     pub fn set_saturation(&mut self, sat: f32) {
         self.saturation = sat;
     }

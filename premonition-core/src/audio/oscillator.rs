@@ -1,8 +1,9 @@
 //! Voltage-controlled oscillator (VCO) implementation.
 
-use crate::audio::Imperfection;
 use crate::control::Parameters;
-use num_traits::float::Float;
+
+#[allow(dead_code)]
+const PI: f32 = 3.14159265359;
 
 #[derive(Clone, Copy, PartialEq)]
 #[repr(u8)]
@@ -49,7 +50,7 @@ impl Oscillator {
         }
     }
 
-    pub fn init(&mut self, sample_rate: f32) {
+    pub fn init(&mut self, _sample_rate: f32) {
         self.phase = 0.0;
         self.drift = 0.0;
         self.drift_phase = (self.voice_index as f32 * 0.1).fract();
@@ -140,7 +141,8 @@ impl Oscillator {
         x.fract()
     }
 
-    pub fn update_params(&mut self, params: &Parameters) {}
+    #[allow(dead_code)]
+    pub fn update_params(&mut self, _params: &Parameters) {}
 
     pub fn get_phase(&self) -> f32 {
         self.phase
