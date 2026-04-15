@@ -151,17 +151,30 @@ impl Voice {
         let lfo_delay = (self.lfo_delay_counter / 1000.0).min(1.0);
         let effective_lfo = lfo_value * lfo_delay;
 
+        // Static pitch offsets (coarse/fine)
+        let osc1_semitones = params.osc1_freq + params.osc1_fine;
+        let osc2_semitones = params.osc2_coarse + params.osc2_fine;
+        
+        // Fast approximation for 2^(semitones / 12)
+        // 2^(x) ≈ 1.0 + 0.693*x + 0.240*x^2 for small x.
+        // It's much faster than powf per sample.
+        let osc1_static_factor = fast_exp2(osc1_semitones / 12.0);
+        let osc2_static_factor = fast_exp2(osc2_semitones / 12.0);
+
         let lfo_to_pitch = params.lfo_to_osc * effective_lfo;
         let env_to_pitch = self.filter_env.value * params.osc1_pitch_env_depth;
+        let poly_mod_osc_freq = 0.0; // TODO: properly hook up poly_mod
 
-        let osc1_mod = 1.0 + lfo_to_pitch + env_to_pitch + self.pitch_bend;
-        let osc2_mod = 1.0 + lfo_to_pitch + self.pitch_bend;
+        let osc1_mod = osc1_static_factor * (1.0 + lfo_to_pitch + env_to_pitch + self.pitch_bend + poly_mod_osc_freq);
+        let osc2_mod = osc2_static_factor * (1.0 + lfo_to_pitch + self.pitch_bend);
 
         self.osc1.set_pitch_mod(osc1_mod);
         self.osc2.set_pitch_mod(osc2_mod);
 
         let osc1_pw = params.osc1_pulse_width + (effective_lfo * params.lfo_to_pw);
         let osc2_pw = params.osc2_pulse_width + (effective_lfo * params.lfo_to_pw);
+
+
         self.osc1.set_pulse_width(osc1_pw);
         self.osc2.set_pulse_width(osc2_pw);
 
@@ -230,3 +243,28 @@ impl Voice {
         }
     }
 }
+
+/// Fast 2^x approximation for pitch modulation.
+/// Splits x into integer and fractional parts to avoid extreme errors
+/// while remaining much faster than f32::powf()
+#[inline(always)]
+fn fast_exp2(x: f32) -> f32 {
+    let int_part = x.floor();
+    let frac_part = x - int_part;
+    
+    // 2^int_part is easily computed by manipulation of f32 bits if we wanted,
+    // but a match or simple bit shift is fine. Or just rely on standard integer power:
+    // (We cast to i32, then f32 or use the underlying standard function, but std isn't available?)
+    // In our engine, semitones offset is typically small (e.g., -4.0 .. 4.0 for x)
+    
+    // f32 bit manipulation for 2^int_part:
+    let i = int_part as i32;
+    let pow2_int = f32::from_bits(((i + 127).max(0).min(255) as u32) << 23);
+
+    // 2^frac_part ≈ 1.0 + 0.693147 * f + 0.240226 * f^2 + 0.0555 * f^3
+    let f = frac_part;
+    let pow2_frac = 1.0 + f * (0.693147 + f * (0.240226 + f * 0.0555));
+
+    pow2_int * pow2_frac
+}
+
