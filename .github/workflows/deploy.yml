@@ -47,6 +47,9 @@ jobs:
         run: |
           mkdir -p dist
           cp -r premonition-web/* dist/
+          # wasm-pack creates a .gitignore blocking all files inside the pkg directory. Remove it:
+          rm -f dist/pkg/.gitignore
+
           # Copy presets if they exist beside the web folder
           if [ -d premonition-web/presets ]; then cp -r premonition-web/presets dist/presets; fi
 
