@@ -375,7 +375,7 @@ function applyPresetData(rawJson) {
 async function loadPreset(name) {
   // 1. Try fetching from presets/ (works when served over HTTP)
   try {
-    const resp = await fetch(`presets/${name}.json`);
+    const resp = await fetch(`presets/${name}.json?v=${Date.now()}`);
     if (resp.ok) {
       const data = await resp.json();
       applyPresetData(data);
