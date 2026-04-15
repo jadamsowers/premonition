@@ -1,0 +1,17 @@
+[package]
+name = "premonition-wasm"
+version.workspace = true
+edition.workspace = true
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+wasm-bindgen.workspace = true
+js-sys.workspace = true
+premonition-core = { path = "../premonition-core", default-features = false }
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+[dev-dependencies]
+wasm-bindgen-test = "0.3"

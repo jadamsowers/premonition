@@ -1,0 +1,36 @@
+# Rust build artifacts
+**/target/
+Cargo.lock
+
+# Premonition specific
+*.wav
+*.mp3
+*.ogg
+*.mid
+
+# JUCE build artifacts
+premonition-juce/Builds/
+*.framework
+*.dylib
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# WASM
+premonition-wasm/pkg/
+*.wasm
+
+# Presets
+*.json
+!presets/*.json
+
+# Logs
+*.log

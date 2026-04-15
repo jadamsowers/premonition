@@ -1,0 +1,38 @@
+{
+  "jucerVersion": "7.0.0",
+  "name": "Premonition",
+  "projectType": "audioplug",
+  "bundleIdentifier": "com.premonition.synth",
+  "manufacturer": "Premonition",
+  "manufacturerWebsite": "https://github.com/premonition",
+  "license": "MIT",
+  
+  "isPlugin": {
+    "pluginType": "Synth",
+    "pluginFormats": ["VST3", "AU"],
+    "VST3Category": "Instrument",
+    "AUCategory": "kAudioUnitType_MusicDevice",
+    "buildVST": true,
+    "buildVST3": true,
+    "buildAU": true,
+    "buildAUv3": false,
+    "xcodeFrameworkCompatibility": "None"
+  },
+  
+  "modules": [],
+  
+  "sourcePaths": ["Source"],
+  "headerPaths": ["Source"],
+  "resourcePaths": ["Resources"],
+  
+  "macXcodeResources": ["Resources"],
+  
+  "version": "0.1.0",
+  "minimumVersion": "10.13",
+  
+  "targetSettings": {},
+  
+  "VST3CopyDir": "",
+  "AAXLibPaths": "",
+  "AAXResourcePaths": ""
+}
