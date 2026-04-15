@@ -346,17 +346,18 @@ Each host (JUCE, WASM, CLI) must implement:
 
 ### 10.3 Standalone CLI
 - [x] Implement audio I/O with `cpal` or `rodio`
-- [ ] Add MIDI input support (`rtmidi` or similar)
+- [x] Add MIDI input support (`midir`)
+- [x] Computer keyboard input with piano layout (A=C4)
 - [ ] Optional: Add TUI with `ratatui` or `cursive`
 - [ ] Optional: Headless mode for server/audio rendering
 - [ ] Package for macOS, Windows, Linux
 
 ### 10.4 Web UI (Optional)
-- [ ] Create JS/TS web application
-- [ ] Canvas-based synthesizer UI or HTML controls
-- [ ] Load WASM module
-- [ ] Real-time parameter updates
-- [ ] Preset management (localStorage or server)
+- [x] Create JS/TS web application
+- [x] Canvas-based synthesizer UI or HTML controls
+- [x] Load WASM module
+- [x] Real-time parameter updates
+- [x] Preset management (localStorage or server)
 - [ ] Deploy to CDN or static hosting
 
 ---

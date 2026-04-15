@@ -2,7 +2,7 @@
 
 use crate::control::Parameters;
 
-#[derive(Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum EnvelopeStage {
     Idle,
     Attack,
@@ -28,7 +28,7 @@ pub struct Envelope {
     timing_jitter: f32,
     curve_variance: f32,
     sustain_variance: f32,
-
+    sample_rate: f32,
     retrigger_counter: f32,
 }
 
@@ -48,13 +48,15 @@ impl Envelope {
             timing_jitter: ((voice_index as f32 * 6.7).sin() * 0.1).abs(),
             curve_variance: ((voice_index as f32 * 4.3).sin() * 0.05).abs(),
             sustain_variance: ((voice_index as f32 * 8.1).sin() * 0.02).abs(),
+            sample_rate: 44100.0,
             retrigger_counter: 0.0,
         }
     }
 
-    pub fn init(&mut self, _sample_rate: f32) {
+    pub fn init(&mut self, sample_rate: f32) {
         self.value = 0.0;
         self.stage = EnvelopeStage::Idle;
+        self.sample_rate = sample_rate;
     }
 
     pub fn trigger(&mut self) {
@@ -83,7 +85,7 @@ impl Envelope {
             EnvelopeStage::Attack => {
                 let min_attack = self.min_attack_ms / 1000.0;
                 let effective_attack = (self.attack_time.max(min_attack)).max(0.0001);
-                let attack_rate = 1.0 / (effective_attack * 44100.0);
+                let attack_rate = 1.0 / (effective_attack * self.sample_rate);
 
                 self.value += attack_rate.powf(curve);
                 self.value = self.value.min(1.0);
@@ -96,7 +98,7 @@ impl Envelope {
             }
             EnvelopeStage::Decay => {
                 let effective_decay = self.decay_time.max(0.001);
-                let decay_rate = 1.0 / (effective_decay * 44100.0);
+                let decay_rate = 1.0 / (effective_decay * self.sample_rate);
                 let target_sustain = self.sustain_level + self.sustain_variance;
 
                 self.value -= decay_rate.powf(curve);
@@ -112,7 +114,7 @@ impl Envelope {
             }
             EnvelopeStage::Release => {
                 let effective_release = self.release_time.max(0.001);
-                let release_rate = 1.0 / (effective_release * 44100.0);
+                let release_rate = 1.0 / (effective_release * self.sample_rate);
 
                 self.value -= release_rate.powf(curve);
                 self.value = self.value.max(0.0);
@@ -158,5 +160,64 @@ impl Envelope {
 impl Default for Envelope {
     fn default() -> Self {
         Self::new(0)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_envelope_initialization() {
+        let mut env = Envelope::new(0);
+        env.init(48000.0);
+        assert_eq!(env.value, 0.0);
+        assert!(env.is_idle());
+    }
+
+    #[test]
+    fn test_envelope_attack() {
+        let mut env = Envelope::new(0);
+        env.init(44100.0);
+        
+        let params = Parameters::default();
+        env.update_params(&params);
+        
+        env.trigger();
+        assert_eq!(env.get_stage(), EnvelopeStage::Attack);
+        
+        // Fast forward through jitter
+        for _ in 0..100 {
+            env.process(&params);
+        }
+
+        assert!(env.value > 0.0);
+    }
+
+    #[test]
+    fn test_envelope_release() {
+        let mut env = Envelope::new(0);
+        env.init(44100.0);
+        
+        let params = Parameters::default();
+        env.update_params(&params);
+        
+        env.trigger();
+        
+        // Push envelope to max value
+        for _ in 0..1000 {
+            env.process(&params);
+        }
+
+        env.release();
+        assert_eq!(env.get_stage(), EnvelopeStage::Release);
+
+        for _ in 0..50000 {
+            env.process(&params);
+        }
+
+        // After long release it should be idle
+        assert!(env.is_idle());
+        assert_eq!(env.value, 0.0);
     }
 }

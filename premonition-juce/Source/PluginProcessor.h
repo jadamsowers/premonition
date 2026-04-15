@@ -6,6 +6,7 @@
 
 #include <juce_audio_processors/juce_audio_processors.h>
 #include <juce_audio_basics/juce_audio_basics.h>
+#include "PremonitionWrapper.h"
 
 class PremonitionProcessor : public juce::AudioProcessor {
 public:
@@ -39,11 +40,13 @@ public:
     void setStateInformation(const void* data, int sizeInBytes) override;
 
 private:
-    struct EngineHandle;
-    std::unique_ptr<EngineHandle> engine;
+    PremonitionEngine* engine = nullptr;
 
     double currentSampleRate = 44100.0;
     int currentBlockSize = 512;
+
+    juce::AudioProcessorValueTreeState apvts;
+    juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PremonitionProcessor)
 };

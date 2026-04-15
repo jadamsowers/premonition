@@ -31,6 +31,7 @@ pub struct Oscillator {
     drift_phase: f32,
     hard_sync_enabled: bool,
     last_value: f32,
+    sample_rate: f32,
 }
 
 impl Oscillator {
@@ -47,13 +48,15 @@ impl Oscillator {
             drift_phase: (voice_index as f32 * 0.1).fract(),
             hard_sync_enabled: false,
             last_value: 0.0,
+            sample_rate: 44100.0,
         }
     }
 
-    pub fn init(&mut self, _sample_rate: f32) {
+    pub fn init(&mut self, sample_rate: f32) {
         self.phase = 0.0;
         self.drift = 0.0;
         self.drift_phase = (self.voice_index as f32 * 0.1).fract();
+        self.sample_rate = sample_rate;
     }
 
     pub fn set_frequency(&mut self, frequency: f32) {
@@ -77,7 +80,7 @@ impl Oscillator {
         let drift_factor = 1.0 + (self.drift * 0.001);
         self.current_frequency = self.base_frequency * self.pitch_mod * drift_factor;
 
-        let phase_increment = self.current_frequency / 44100.0;
+        let phase_increment = self.current_frequency / self.sample_rate;
         self.phase += phase_increment;
 
         if self.phase >= 1.0 {
@@ -152,5 +155,73 @@ impl Oscillator {
 impl Default for Oscillator {
     fn default() -> Self {
         Self::new(0)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_oscillator_initialization() {
+        let mut osc = Oscillator::new(0);
+        osc.init(48000.0);
+        assert_eq!(osc.get_phase(), 0.0);
+    }
+
+    #[test]
+    fn test_saw_waveform_bounds() {
+        let mut osc = Oscillator::new(0);
+        osc.init(44100.0);
+        osc.set_frequency(441.0); // 100 samples per cycle
+        
+        let mut min_val = 1.0f32;
+        let mut max_val = -1.0f32;
+        
+        for _ in 0..100 {
+            let sample = osc.process(Waveform::Saw);
+            if sample < min_val { min_val = sample; }
+            if sample > max_val { max_val = sample; }
+        }
+        
+        assert!(min_val < -0.9, "Min value {} not close to -1.0", min_val);
+        assert!(max_val > 0.9, "Max value {} not close to 1.0", max_val);
+    }
+    
+    #[test]
+    fn test_pulse_waveform_width() {
+        let mut osc = Oscillator::new(0);
+        osc.init(44100.0);
+        osc.set_frequency(441.0); 
+        osc.set_pulse_width(0.25); 
+
+        let mut high_count = 0;
+        let mut low_count = 0;
+        
+        for _ in 0..100 {
+            let sample = osc.process(Waveform::Pulse);
+            if sample > 0.0 { high_count += 1; } else { low_count += 1; }
+        }
+        
+        assert!(high_count > 0 && low_count > 0, "Pulse should have both high and low segments");
+    }
+
+    #[test]
+    fn test_oscillator_hard_sync() {
+        let mut osc1 = Oscillator::new(0);
+        osc1.init(44100.0);
+        osc1.set_frequency(100.0);
+        osc1.set_hard_sync(true);
+
+        osc1.process(Waveform::Saw);
+        assert!(osc1.get_phase() > 0.0);
+
+        let mut master = Oscillator::new(0);
+        master.init(44100.0);
+        master.phase = 0.0;
+        master.last_value = 1.0; 
+
+        osc1.sync_to(&master);
+        assert_eq!(osc1.get_phase(), 0.0, "Oscillator should reset its phase on sync");
     }
 }

@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Premonition — Poly Synthesizer</title>
+  <meta name="description" content="Prophet-style polyphonic analog synthesizer with authentic imperfections. Dual VCOs, 4-pole filter, and full modulation.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="synth-wrapper">
+
+  <!-- ═══════════════════════════════ HEADER ═══════════════════════════════ -->
+  <header class="synth-header">
+    <div class="logo">
+      <span class="logo-main">PREMONITION</span>
+      <span class="logo-sub">POLY SYNTHESIZER</span>
+    </div>
+
+    <div class="scope-wrap">
+      <canvas id="oscilloscope" width="220" height="52"></canvas>
+    </div>
+
+    <div class="header-center">
+      <div class="preset-bar">
+        <button class="icon-btn" id="prev-preset" title="Previous preset">◀</button>
+        <select id="preset-select" class="preset-select">
+          <option value="init">INIT</option>
+          <option value="bass">BASS</option>
+          <option value="pad">PAD</option>
+        </select>
+        <button class="icon-btn" id="next-preset" title="Next preset">▶</button>
+        <button class="text-btn" id="save-preset">SAVE</button>
+      </div>
+    </div>
+
+    <div class="header-right">
+      <div class="status-row">
+        <div class="status-pill" id="audio-indicator">
+          <div class="status-led"></div>
+          <span>AUDIO</span>
+        </div>
+        <div class="status-pill" id="midi-indicator">
+          <div class="status-led"></div>
+          <span>MIDI</span>
+        </div>
+      </div>
+      <button class="activate-btn" id="start-audio">▶ ACTIVATE</button>
+    </div>
+  </header>
+
+  <!-- ═══════════════════════════════ PANEL ════════════════════════════════ -->
+  <main class="panel">
+
+    <!-- ── OSC A ──────────────────────────────────────────────────────────── -->
+    <section class="module" id="mod-osc-a">
+      <div class="module-header">OSC A</div>
+      <div class="module-body">
+
+        <div class="control">
+          <div class="wave-switch" data-param="0" data-count="2">
+            <button class="wave-btn active" data-index="0" title="Sawtooth">
+              <svg viewBox="0 0 32 18" width="32" height="18"><polyline points="0,16 14,2 14,16 28,2 28,16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+            <button class="wave-btn" data-index="1" title="Pulse">
+              <svg viewBox="0 0 32 18" width="32" height="18"><polyline points="1,16 1,2 12,2 12,16 20,16 20,2 31,2 31,16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+          </div>
+          <div class="control-label">WAVE</div>
+        </div>
+
+        <div class="control">
+          <div class="knob-wrap"><div class="knob" data-param="1" data-default="0.5" tabindex="0"><div class="knob-indicator"></div></div></div>
+          <div class="knob-value">0.50</div>
+          <div class="control-label">FREQ</div>
+        </div>
+
+        <div class="control">
+          <div class="knob-wrap"><div class="knob" data-param="2" data-default="0.5" tabindex="0"><div class="knob-indicator"></div></div></div>
+          <div class="knob-value">0.50</div>
+          <div class="control-label">FINE</div>
+        </div>
+
+        <div class="control">
+          <div class="knob-wrap"><div class="knob" data-param="3" data-default="0.5" tabindex="0"><div class="knob-indicator"></div></div></div>
+          <div class="knob-value">0.50</div>
+          <div class="control-label">PULSE W</div>
+        </div>
+
+        <div class="control">
+          <div class="knob-wrap"><div class="knob" data-param="4" data-default="0.5" tabindex="0"><div class="knob-indicator"></div></div></div>
+          <div class="knob-value">0.50</div>
+          <div class="control-label">PITCH ENV</div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ── OSC B ──────────────────────────────────────────────────────────── -->
+    <section class="module" id="mod-osc-b">
+      <div class="module-header">OSC B</div>
+      <div class="module-body">
+
+        <div class="control">
+          <div class="wave-switch" data-param="5" data-count="3">
+            <button class="wave-btn active" data-index="0" title="Sawtooth">
+              <svg viewBox="0 0 32 18" width="32" height="18"><polyline points="0,16 14,2 14,16 28,2 28,16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+            <button class="wave-btn" data-index="1" title="Pulse">
+              <svg viewBox="0 0 32 18" width="32" height="18"><polyline points="1,16 1,2 12,2 12,16 20,16 20,2 31,2 31,16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+            <button class="wave-btn" data-index="2" title="Triangle">
+              <svg viewBox="0 0 32 18" width="32" height="18"><polyline points="0,16 8,2 16,16 24,2 32,16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+          </div>
+          <div class="control-label">WAVE</div>
+        </div>
+
+        <div class="control">
+          <div class="knob-wrap"><div class="knob" data-param="6" data-default="0.5" tabindex="0"><div class="knob-indicator"></div></div></div>
+          <div class="knob-value">0.50</div>
+          <div class="control-label">COARSE</div>
+        </div>
+
+        <div class="control">
+          <div class="knob-wrap"><div class="knob" data-param="7" data-default="0.5" tabindex="0"><div class="knob-indicator"></div></div></div>
+          <div class="knob-value">0.50</div>
+          <div class="control-label">FINE</div>
+        </div>
+
+        <div class="control">
+          <div class="knob-wrap"><div class="knob" data-param="8" data-default="0.5" tabindex="0"><div class="knob-indicator"></div></div></div>
+          <div class="knob-value">0.50</div>
+          <div class="control-label">PULSE W</div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ── MIXER ──────────────────────────────────────────────────────────── -->
+    <section class="module module-narrow" id="mod-mixer">
+      <div class="module-header">MIXER</div>
+      <div class="module-body">
+
+        <div class="control">
+          <div class="knob-wrap"><div class="knob knob-sm" data-param="10" data-default="0.5" tabindex="0"><div class="knob-indicator"></div></div></div>
+          <div class="knob-value">0.50</div>
+          <div class="control-label">A/B MIX</div>
+        </div>
+
+        <div class="control">
+          <div class="knob-wrap"><div class="knob knob-sm" data-param="9" data-default="0.0" tabindex="0"><div class="knob-indicator"></div></div></div>
+          <div class="knob-value">0.00</div>
+          <div class="control-label">NOISE</div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ── FILTER ─────────────────────────────────────────────────────────── -->
+    <section class="module module-filter" id="mod-filter">
+      <div class="module-header">FILTER</div>
+      <div class="module-body">
+
+        <div class="control">
+          <div class="knob-wrap"><div class="knob" data-param="11" data-default="0.25" tabindex="0"><div class="knob-indicator"></div></div></div>
+          <div class="knob-value">0.25</div>
+          <div class="control-label">CUTOFF</div>
+        </div>
+
+        <div class="control">
+          <div class="knob-wrap"><div class="knob" data-param="12" data-default="0.0" tabindex="0"><div class="knob-indicator"></div></div></div>
+          <div class="knob-value">0.00</div>
+          <div class="control-label">RESONANCE</div>
+        </div>
+
+        <div class="control">
+          <div class="knob-wrap"><div class="knob" data-param="13" data-default="0.5" tabindex="0"><div class="knob-indicator"></div></div></div>
+          <div class="knob-value">0.50</div>
+          <div class="control-label">ENV AMT</div>
+        </div>
+
+        <div class="control">
+          <div class="knob-wrap"><div class="knob" data-param="14" data-default="0.0" tabindex="0"><div class="knob-indicator"></div></div></div>
+          <div class="knob-value">0.00</div>
+          <div class="control-label">KEY TRACK</div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ── AMP ENV ────────────────────────────────────────────────────────── -->
+    <section class="module" id="mod-amp-env">
+      <div class="module-header">AMP ENV</div>
+      <div class="module-body">
+
+        <div class="control">
+          <div class="knob-wrap"><div class="knob" data-param="15" data-default="0.03" tabindex="0"><div class="knob-indicator"></div></div></div>
+          <div class="knob-value">0.03</div>
+          <div class="control-label">ATTACK</div>
+        </div>
+
+        <div class="control">
+          <div class="knob-wrap"><div class="knob" data-param="16" data-default="0.3" tabindex="0"><div class="knob-indicator"></div></div></div>
+          <div class="knob-value">0.30</div>
+          <div class="control-label">DECAY</div>
+        </div>
+
+        <div class="control">
+          <div class="knob-wrap"><div class="knob" data-param="17" data-default="0.7" tabindex="0"><div class="knob-indicator"></div></div></div>
+          <div class="knob-value">0.70</div>
+          <div class="control-label">SUSTAIN</div>
+        </div>
+
+        <div class="control">
+          <div class="knob-wrap"><div class="knob" data-param="18" data-default="0.3" tabindex="0"><div class="knob-indicator"></div></div></div>
+          <div class="knob-value">0.30</div>
+          <div class="control-label">RELEASE</div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ── FILTER ENV ─────────────────────────────────────────────────────── -->
+    <section class="module module-filter" id="mod-flt-env">
+      <div class="module-header">FILTER ENV</div>
+      <div class="module-body">
+
+        <div class="control">
+          <div class="knob-wrap"><div class="knob" data-param="19" data-default="0.03" tabindex="0"><div class="knob-indicator"></div></div></div>
+          <div class="knob-value">0.03</div>
+          <div class="control-label">ATTACK</div>
+        </div>
+
+        <div class="control">
+          <div class="knob-wrap"><div class="knob" data-param="20" data-default="0.3" tabindex="0"><div class="knob-indicator"></div></div></div>
+          <div class="knob-value">0.30</div>
+          <div class="control-label">DECAY</div>
+        </div>
+
+        <div class="control">
+          <div class="knob-wrap"><div class="knob" data-param="21" data-default="0.5" tabindex="0"><div class="knob-indicator"></div></div></div>
+          <div class="knob-value">0.50</div>
+          <div class="control-label">SUSTAIN</div>
+        </div>
+
+        <div class="control">
+          <div class="knob-wrap"><div class="knob" data-param="22" data-default="0.3" tabindex="0"><div class="knob-indicator"></div></div></div>
+          <div class="knob-value">0.30</div>
+          <div class="control-label">RELEASE</div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ── LFO / MOD ──────────────────────────────────────────────────────── -->
+    <section class="module module-mod" id="mod-lfo">
+      <div class="module-header">LFO / MOD</div>
+      <div class="module-body">
+
+        <div class="control">
+          <div class="wave-switch" data-param="24" data-count="4">
+            <button class="wave-btn active" data-index="0" title="Triangle">
+              <svg viewBox="0 0 28 16" width="28" height="16"><polyline points="0,14 7,2 14,14 21,2 28,14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+            <button class="wave-btn" data-index="1" title="Sawtooth">
+              <svg viewBox="0 0 28 16" width="28" height="16"><polyline points="0,14 12,2 12,14 24,2 24,14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+            <button class="wave-btn" data-index="2" title="Square">
+              <svg viewBox="0 0 28 16" width="28" height="16"><polyline points="0,14 0,2 9,2 9,14 18,14 18,2 27,2 27,14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+            <button class="wave-btn" data-index="3" title="Random S&H">
+              <svg viewBox="0 0 28 16" width="28" height="16"><polyline points="0,14 0,8 5,8 5,3 10,3 10,12 15,12 15,6 20,6 20,10 25,10 25,4 28,4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+          </div>
+          <div class="control-label">LFO WAVE</div>
+        </div>
+
+        <div class="mod-row">
+          <div class="control">
+            <div class="knob-wrap"><div class="knob knob-sm" data-param="23" data-default="0.1" tabindex="0"><div class="knob-indicator"></div></div></div>
+            <div class="knob-value">0.10</div>
+            <div class="control-label">RATE</div>
+          </div>
+          <div class="control">
+            <div class="knob-wrap"><div class="knob knob-sm" data-param="25" data-default="0.5" tabindex="0"><div class="knob-indicator"></div></div></div>
+            <div class="knob-value">0.50</div>
+            <div class="control-label">DEPTH</div>
+          </div>
+        </div>
+
+        <div class="mod-row">
+          <div class="control">
+            <div class="knob-wrap"><div class="knob knob-xs" data-param="26" data-default="0.5" tabindex="0"><div class="knob-indicator"></div></div></div>
+            <div class="control-label">→OSC</div>
+          </div>
+          <div class="control">
+            <div class="knob-wrap"><div class="knob knob-xs" data-param="27" data-default="0.0" tabindex="0"><div class="knob-indicator"></div></div></div>
+            <div class="control-label">→FILT</div>
+          </div>
+          <div class="control">
+            <div class="knob-wrap"><div class="knob knob-xs" data-param="28" data-default="0.5" tabindex="0"><div class="knob-indicator"></div></div></div>
+            <div class="control-label">→PW</div>
+          </div>
+        </div>
+
+        <div class="section-divider">POLY MOD</div>
+
+        <div class="mod-row">
+          <div class="control">
+            <div class="knob-wrap"><div class="knob knob-xs" data-param="29" data-default="0.5" tabindex="0"><div class="knob-indicator"></div></div></div>
+            <div class="control-label">FREQ</div>
+          </div>
+          <div class="control">
+            <div class="knob-wrap"><div class="knob knob-xs" data-param="30" data-default="0.5" tabindex="0"><div class="knob-indicator"></div></div></div>
+            <div class="control-label">PW</div>
+          </div>
+          <div class="control">
+            <div class="knob-wrap"><div class="knob knob-xs" data-param="31" data-default="0.5" tabindex="0"><div class="knob-indicator"></div></div></div>
+            <div class="control-label">FILT</div>
+          </div>
+        </div>
+
+        <div class="section-divider">GLOBAL</div>
+
+        <div class="mod-row">
+          <div class="control">
+            <div class="knob-wrap"><div class="knob knob-xs" data-param="32" data-default="0.1" tabindex="0"><div class="knob-indicator"></div></div></div>
+            <div class="control-label">SLOP</div>
+          </div>
+          <div class="control">
+            <div class="knob-wrap"><div class="knob knob-xs" data-param="33" data-default="0.0" tabindex="0"><div class="knob-indicator"></div></div></div>
+            <div class="control-label">UNISON</div>
+          </div>
+          <div class="control">
+            <div class="knob-wrap"><div class="knob knob-xs" data-param="34" data-default="0.0" tabindex="0"><div class="knob-indicator"></div></div></div>
+            <div class="control-label">DETUNE</div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ═════════════════════════════ FOOTER ═════════════════════════════════ -->
+  <footer class="synth-footer">
+
+    <div class="master-vol">
+      <div class="control">
+        <div class="knob-wrap"><div class="knob" data-param="35" data-default="0.75" tabindex="0"><div class="knob-indicator"></div></div></div>
+        <div class="knob-value">0.75</div>
+        <div class="control-label">VOLUME</div>
+      </div>
+    </div>
+
+    <div class="keyboard-section">
+      <div class="keyboard-scroll">
+        <div class="keyboard" id="keyboard"></div>
+      </div>
+      <div class="keyboard-meta">
+        <span class="key-hints">A W S E D F T G Y H U J K</span>
+        <span class="octave-ctrl">
+          <button id="oct-down" title="Octave down">−</button>
+          <span id="octave-label">OCT 4</span>
+          <button id="oct-up" title="Octave up">+</button>
+        </span>
+      </div>
+    </div>
+
+  </footer>
+
+</div><!-- .synth-wrapper -->
+
+<script src="synth.js"></script>
+</body>
+</html>

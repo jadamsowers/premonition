@@ -80,6 +80,14 @@ impl WasmEngine {
                 .handle_midi(MidiMessage::NoteOff { channel: 0, note });
         }
     }
+
+    /// Dispatch a raw 3-byte MIDI message. Status byte, data1, data2.
+    /// This lets the JS Web MIDI layer forward messages verbatim.
+    pub fn midi_message(&mut self, status: u8, data1: u8, data2: u8) {
+        if let Some(msg) = MidiMessage::from_bytes(status, data1, data2) {
+            self.engine.handle_midi(msg);
+        }
+    }
 }
 
 impl Default for WasmEngine {

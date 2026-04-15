@@ -95,3 +95,28 @@ impl Default for PolyMod {
         Self::new(0)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_polymod_routing() {
+        let mut pmod = PolyMod::new(0);
+        pmod.init(44100.0);
+        pmod.set_osc2_depth(0.5);
+        pmod.set_filter_env_depth(0.5);
+        
+        // Osc2 sample = 1.0, env value = 1.0
+        let output = pmod.process(1.0, 1.0, 0.0, 0.0, 0.0);
+        
+        // Should scale based on depths
+        assert!(output > 0.0);
+        
+        // Test no routing
+        pmod.set_osc2_depth(0.0);
+        pmod.set_filter_env_depth(0.0);
+        let silent_output = pmod.process(1.0, 1.0, 0.0, 0.0, 0.0);
+        assert_eq!(silent_output, 0.0);
+    }
+}

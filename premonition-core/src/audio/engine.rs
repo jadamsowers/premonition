@@ -32,8 +32,10 @@ impl Engine {
     pub fn init(&mut self, sample_rate: f32) {
         self.sample_rate = sample_rate;
         self.voice_manager.init(sample_rate);
+        self.voice_manager.update_params(&self.params);
         self.output.init(sample_rate);
         self.lfo.init(sample_rate);
+        self.lfo.update_params(&self.params);
         self.effects.init(sample_rate);
     }
 
@@ -116,7 +118,61 @@ impl Engine {
             MidiMessage::AllNotesOff { channel: _ } => {
                 self.voice_manager.all_notes_off();
             }
-            MidiMessage::ControlChange { .. } => {}
+            MidiMessage::ControlChange {
+                channel: _,
+                controller,
+                value,
+            } => {
+                let norm = value as f32 / 127.0;
+                // Standard GM / Prophet-inspired CC map
+                // All unmapped CCs are silently ignored.
+                let param = match controller {
+                    // ── Mixer / Output ────────────────────────────────────
+                    7  => Some(ParameterId::MasterVolume),
+                    10 => Some(ParameterId::OscMix),
+                    15 => Some(ParameterId::NoiseLevel),
+                    // ── Filter ───────────────────────────────────────────
+                    74 => Some(ParameterId::FilterCutoff),
+                    71 => Some(ParameterId::FilterResonance),
+                    16 => Some(ParameterId::FilterEnvAmount),
+                    14 => Some(ParameterId::FilterKeyTracking),
+                    // ── Amp Envelope ─────────────────────────────────────
+                    73 => Some(ParameterId::AmpAttack),
+                    75 => Some(ParameterId::AmpDecay),
+                    76 => Some(ParameterId::AmpSustain),
+                    72 => Some(ParameterId::AmpRelease),
+                    // ── Filter Envelope ───────────────────────────────────
+                    77 => Some(ParameterId::FilterAttack),
+                    78 => Some(ParameterId::FilterDecay),
+                    79 => Some(ParameterId::FilterSustain),
+                    80 => Some(ParameterId::FilterRelease),
+                    // ── LFO ──────────────────────────────────────────────
+                    17 => Some(ParameterId::LfoRate),
+                    // CC 1 = mod wheel → already handled as ModWheel above,
+                    // but also accepted as LfoDepth via generic CC path
+                    18 => Some(ParameterId::LfoDepth),
+                    24 => Some(ParameterId::LfoToOsc),
+                    25 => Some(ParameterId::LfoToFilter),
+                    26 => Some(ParameterId::LfoToPw),
+                    // ── Oscillators ───────────────────────────────────────
+                    20 => Some(ParameterId::Osc1Fine),
+                    21 => Some(ParameterId::Osc1PulseWidth),
+                    22 => Some(ParameterId::Osc2Coarse),
+                    23 => Some(ParameterId::Osc2Fine),
+                    27 => Some(ParameterId::Osc2PulseWidth),
+                    // ── Poly Mod ─────────────────────────────────────────
+                    28 => Some(ParameterId::PolyModOsc2ToOsc1Freq),
+                    29 => Some(ParameterId::PolyModOsc2ToOsc1Pw),
+                    30 => Some(ParameterId::PolyModFilterEnvToFilter),
+                    // ── Character ────────────────────────────────────────
+                    19 => Some(ParameterId::Slop),
+                    31 => Some(ParameterId::UnisonDetune),
+                    _ => None,
+                };
+                if let Some(p) = param {
+                    self.set_parameter(p, norm);
+                }
+            }
         }
     }
 

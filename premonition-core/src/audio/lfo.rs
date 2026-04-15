@@ -27,6 +27,7 @@ pub struct Lfo {
     random_value: f32,
     random_target: f32,
     sample_hold_counter: f32,
+    sample_rate: f32,
 }
 
 impl Lfo {
@@ -41,10 +42,12 @@ impl Lfo {
             random_value: 0.0,
             random_target: 0.0,
             sample_hold_counter: 0.0,
+            sample_rate: 44100.0,
         }
     }
 
-    pub fn init(&mut self, _sample_rate: f32) {
+    pub fn init(&mut self, sample_rate: f32) {
+        self.sample_rate = sample_rate;
         self.phase = 0.0;
         self.drift = 0.0;
         self.drift_phase = 0.0;
@@ -65,7 +68,7 @@ impl Lfo {
         let nonlinear_depth = params.lfo_depth * (1.0 + (params.lfo_depth - 0.5) * 0.1);
         self.depth = nonlinear_depth;
 
-        let phase_increment = rate_with_drift / 44100.0;
+        let phase_increment = rate_with_drift / self.sample_rate;
         self.phase += phase_increment;
         if self.phase >= 1.0 {
             self.phase -= 1.0;
@@ -104,7 +107,7 @@ impl Lfo {
             }
             LfoWaveform::Random => {
                 self.sample_hold_counter += 1.0;
-                if self.sample_hold_counter >= 441.0 {
+                if self.sample_hold_counter >= self.sample_rate / 100.0 {
                     self.sample_hold_counter = 0.0;
                     self.random_value = self.random_target;
                 }
@@ -143,5 +146,36 @@ impl Lfo {
 impl Default for Lfo {
     fn default() -> Self {
         Self::new()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_lfo_output_bounds() {
+        let mut lfo = Lfo::new();
+        lfo.init(44100.0);
+        let mut params = Parameters::default();
+        params.lfo_wave = 0; // Triangle
+        params.lfo_rate = 441.0; // Arbitrary test rate
+        params.lfo_depth = 1.0;
+        lfo.update_params(&params);
+        
+        let mut max_val = -10.0f32;
+        let mut min_val = 10.0f32;
+
+        for _ in 0..1000 {
+            let sample = lfo.process(&params);
+            if sample > max_val { max_val = sample; }
+            if sample < min_val { min_val = sample; }
+        }
+
+        // The depth mapping does nonlinear scaling, but it shouldn't exceed approx bounds
+        assert!(max_val > 0.0);
+        assert!(min_val < 0.0);
+        assert!(max_val <= 1.1); // Allowing for slight overshoot due to nonlinear_depth mapping
+        assert!(min_val >= -1.1);
     }
 }

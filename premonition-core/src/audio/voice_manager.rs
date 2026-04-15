@@ -90,7 +90,7 @@ impl VoiceManager {
             voice.osc2.update_params(params);
             voice.filter.update_params(params);
             voice.amp_env.update_params(params);
-            voice.filter_env.update_params(params);
+            voice.filter_env.update_filter_params(params);
         }
     }
 

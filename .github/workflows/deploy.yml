@@ -1,0 +1,60 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:          # Allow manual trigger from GitHub UI
+
+permissions:
+  contents: write             # Required for gh-pages branch push
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # ── Checkout ─────────────────────────────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ── Rust / wasm-pack toolchain ────────────────────────────────────────
+      - name: Install Rust (stable)
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+
+      - name: Cache Cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-
+
+      - name: Install wasm-pack
+        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+
+      # ── Build WASM ────────────────────────────────────────────────────────
+      - name: Build WASM package
+        working-directory: premonition-wasm
+        run: wasm-pack build --target web --out-dir ../premonition-web/pkg
+
+      # ── Assemble dist/ ────────────────────────────────────────────────────
+      # Copy the entire web folder into dist/; pkg/ is already inside it.
+      - name: Assemble dist directory
+        run: |
+          mkdir -p dist
+          cp -r premonition-web/* dist/
+          # Copy presets if they exist beside the web folder
+          if [ -d premonition-web/presets ]; then cp -r premonition-web/presets dist/presets; fi
+
+      # ── GitHub Pages deploy ───────────────────────────────────────────────
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist
+          publish_branch: gh-pages
+          commit_message: "Deploy: ${{ github.sha }}"

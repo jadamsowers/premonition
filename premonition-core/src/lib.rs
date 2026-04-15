@@ -1,5 +1,5 @@
 #![no_std]
-#![warn(missing_docs)]
+#![allow(missing_docs)]
 
 //! Premonition Core DSP Engine
 //!

@@ -9,4 +9,6 @@ cpal = "0.15"
 midir = "0.10"
 serde = { workspace = true }
 serde_json = { workspace = true }
-clap = { version = "4", features = ["derive"] }
+clap = { workspace = true }
+crossterm = "0.27"
+dirs = "5.0"

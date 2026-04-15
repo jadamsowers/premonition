@@ -19,3 +19,21 @@ wasm-bindgen = "0.2"
 js-sys = "0.3"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
+clap = { version = "4", features = ["derive"] }
+
+# ── Native release profile ─────────────────────────────────────────────────
+[profile.release]
+opt-level = 3
+lto = "thin"        # Link-time optimisation (fast variant)
+codegen-units = 1   # Maximise inlining across crates
+panic = "abort"     # Smaller binary — no unwinding tables
+strip = "symbols"   # Remove debug symbols from final binary
+
+# ── WASM-specific release profile ──────────────────────────────────────────
+# Build with: cargo build --profile release-wasm --target wasm32-unknown-unknown
+[profile.release-wasm]
+inherits = "release"
+opt-level = "z"     # Optimise for size (wasm-opt handles speed after)
+lto = true          # Full LTO — slower build, smaller .wasm
+codegen-units = 1
+panic = "abort"     # Required for WASM; removes unwinder

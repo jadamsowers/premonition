@@ -187,7 +187,7 @@ impl Default for Parameters {
             unison_voices: 1,
             unison_detune: 0.0,
 
-            master_volume: 0.75,
+            master_volume: 1.0,
         }
     }
 }
@@ -285,5 +285,42 @@ impl Parameters {
 
     pub fn from_json(json: &str) -> Result<Self, serde_json::Error> {
         serde_json::from_str(json)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_parameter_serialization() {
+        let mut params = Parameters::default();
+        params.master_volume = 0.42;
+        params.osc1_wave = 1;
+        params.filter_cutoff = 12000.0;
+
+        let json = params.to_json().expect("Failed to serialize");
+        
+        let loaded = Parameters::from_json(&json).expect("Failed to deserialize");
+        assert_eq!(loaded.master_volume, 0.42);
+        assert_eq!(loaded.osc1_wave, 1);
+        assert_eq!(loaded.filter_cutoff, 12000.0);
+    }
+    
+    #[test]
+    fn test_parameter_normalization() {
+        let mut params = Parameters::default();
+        
+        // Master Volume bounds 0.0 to 1.0
+        params.set(ParameterId::MasterVolume, 0.5);
+        assert_eq!(params.master_volume, 0.5);
+        
+        // Filter Cutoff bounds 20.0 to 20000.0
+        params.set(ParameterId::FilterCutoff, 0.5);
+        // (19980 * 0.5) + 20 = 10010.0
+        assert_eq!(params.filter_cutoff, 10010.0);
+        
+        // Ensure get() reconstructs the 0..1 normalized mapping properly
+        assert_eq!(params.get(ParameterId::FilterCutoff), 0.5);
     }
 }
