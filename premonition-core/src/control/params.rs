@@ -41,6 +41,7 @@ pub enum ParameterId {
     UnisonVoices = 33,
     UnisonDetune = 34,
     MasterVolume = 35,
+    Osc2LoFreq = 36,
 }
 
 impl ParameterId {
@@ -82,6 +83,7 @@ impl ParameterId {
             33 => ParameterId::UnisonVoices,
             34 => ParameterId::UnisonDetune,
             35 => ParameterId::MasterVolume,
+            36 => ParameterId::Osc2LoFreq,
             _ => ParameterId::MasterVolume,
         }
     }
@@ -103,6 +105,7 @@ pub struct Parameters {
     pub osc2_coarse: f32,
     pub osc2_fine: f32,
     pub osc2_pulse_width: f32,
+    pub osc2_lo_freq: bool,
 
     pub noise_level: f32,
     pub osc_mix: f32,
@@ -153,6 +156,7 @@ impl Default for Parameters {
             osc2_coarse: 0.0,
             osc2_fine: 0.0,
             osc2_pulse_width: 0.5,
+            osc2_lo_freq: false,
 
             noise_level: 0.0,
             osc_mix: 0.5,
@@ -196,12 +200,12 @@ impl Parameters {
     pub fn set(&mut self, param: ParameterId, value: f32) {
         match param {
             ParameterId::Osc1Wave => self.osc1_wave = (value * 1.0).round() as u8,
-            ParameterId::Osc1Freq => self.osc1_freq = (value - 0.5) * 48.0,
+            ParameterId::Osc1Freq => self.osc1_freq = (value - 0.5) * 120.0,
             ParameterId::Osc1Fine => self.osc1_fine = (value - 0.5) * 2.0,
             ParameterId::Osc1PulseWidth => self.osc1_pulse_width = value,
             ParameterId::Osc1PitchEnvDepth => self.osc1_pitch_env_depth = (value - 0.5) * 0.5,
             ParameterId::Osc2Wave => self.osc2_wave = (value * 2.0).round() as u8,
-            ParameterId::Osc2Coarse => self.osc2_coarse = (value - 0.5) * 48.0,
+            ParameterId::Osc2Coarse => self.osc2_coarse = (value - 0.5) * 120.0,
             ParameterId::Osc2Fine => self.osc2_fine = (value - 0.5) * 2.0,
             ParameterId::Osc2PulseWidth => self.osc2_pulse_width = value,
             ParameterId::NoiseLevel => self.noise_level = value,
@@ -235,18 +239,19 @@ impl Parameters {
             ParameterId::UnisonVoices => self.unison_voices = (value * 7.0) as u8 + 1,
             ParameterId::UnisonDetune => self.unison_detune = value,
             ParameterId::MasterVolume => self.master_volume = value,
+            ParameterId::Osc2LoFreq => self.osc2_lo_freq = value > 0.5,
         }
     }
 
     pub fn get(&self, param: ParameterId) -> f32 {
         match param {
             ParameterId::Osc1Wave => self.osc1_wave as f32 / 1.0,
-            ParameterId::Osc1Freq => (self.osc1_freq / 48.0) + 0.5,
+            ParameterId::Osc1Freq => (self.osc1_freq / 120.0) + 0.5,
             ParameterId::Osc1Fine => (self.osc1_fine / 2.0) + 0.5,
             ParameterId::Osc1PulseWidth => self.osc1_pulse_width,
             ParameterId::Osc1PitchEnvDepth => (self.osc1_pitch_env_depth / 0.5) + 0.5,
             ParameterId::Osc2Wave => self.osc2_wave as f32 / 2.0,
-            ParameterId::Osc2Coarse => (self.osc2_coarse / 48.0) + 0.5,
+            ParameterId::Osc2Coarse => (self.osc2_coarse / 120.0) + 0.5,
             ParameterId::Osc2Fine => (self.osc2_fine / 2.0) + 0.5,
             ParameterId::Osc2PulseWidth => self.osc2_pulse_width,
             ParameterId::NoiseLevel => self.noise_level,
@@ -276,6 +281,7 @@ impl Parameters {
             ParameterId::UnisonVoices => (self.unison_voices as f32 - 1.0) / 7.0,
             ParameterId::UnisonDetune => self.unison_detune,
             ParameterId::MasterVolume => self.master_volume,
+            ParameterId::Osc2LoFreq => if self.osc2_lo_freq { 1.0 } else { 0.0 },
         }
     }
 

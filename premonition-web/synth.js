@@ -36,6 +36,7 @@ const DEFAULTS = {
   [P.PM_FREQ]:    0.5,  [P.PM_PW]:       0.5,  [P.PM_FILT]:    0.5,
   [P.SLOP]:       0.1,  [P.UNISON]:      0,    [P.UNISON_DET]: 0,
   [P.MASTER_VOL]: 0.75,
+  36: 0,
 };
 
 // Inline init preset (raw internal values from Rust Parameters struct)
@@ -43,7 +44,7 @@ const DEFAULTS = {
 const BUILTIN_PRESETS = {
   init: {
     osc1_wave:0, osc1_freq:0.0, osc1_fine:0.0, osc1_pulse_width:0.5, osc1_pitch_env_depth:0.0,
-    osc2_wave:0, osc2_coarse:0.0, osc2_fine:0.0, osc2_pulse_width:0.5,
+    osc2_wave:0, osc2_coarse:0.0, osc2_fine:0.0, osc2_pulse_width:0.5, osc2_lo_freq:0.0,
     noise_level:0.0, osc_mix:0.5,
     filter_cutoff:20000.0, filter_resonance:0.0, filter_env_amount:0.0, filter_keyboard_tracking:0.0,
     amp_attack:0.01, amp_decay:0.2, amp_sustain:1.0, amp_release:0.3,
@@ -55,7 +56,7 @@ const BUILTIN_PRESETS = {
   },
   bass: {
     osc1_wave:1, osc1_freq:0.0, osc1_fine:0.0, osc1_pulse_width:0.5, osc1_pitch_env_depth:0.0,
-    osc2_wave:0, osc2_coarse:-12.0, osc2_fine:0.05, osc2_pulse_width:0.5,
+    osc2_wave:0, osc2_coarse:-12.0, osc2_fine:0.05, osc2_pulse_width:0.5, osc2_lo_freq:0.0,
     noise_level:0.05, osc_mix:0.7,
     filter_cutoff:400.0, filter_resonance:0.3, filter_env_amount:0.8, filter_keyboard_tracking:0.5,
     amp_attack:0.002, amp_decay:0.1, amp_sustain:0.4, amp_release:0.1,
@@ -67,7 +68,7 @@ const BUILTIN_PRESETS = {
   },
   pad: {
     osc1_wave:2, osc1_freq:0.0, osc1_fine:0.0, osc1_pulse_width:0.5, osc1_pitch_env_depth:0.0,
-    osc2_wave:2, osc2_coarse:0.01, osc2_fine:-0.05, osc2_pulse_width:0.5,
+    osc2_wave:2, osc2_coarse:0.01, osc2_fine:-0.05, osc2_pulse_width:0.5, osc2_lo_freq:0.0,
     noise_level:0.0, osc_mix:0.5,
     filter_cutoff:1200.0, filter_resonance:0.2, filter_env_amount:0.4, filter_keyboard_tracking:0.8,
     amp_attack:1.2, amp_decay:0.5, amp_sustain:0.8, amp_release:2.5,
@@ -85,7 +86,7 @@ const FIELD_TO_PARAM = {
   osc1_wave: P.OSC1_WAVE, osc1_freq: P.OSC1_FREQ, osc1_fine: P.OSC1_FINE,
   osc1_pulse_width: P.OSC1_PW, osc1_pitch_env_depth: P.OSC1_PENV,
   osc2_wave: P.OSC2_WAVE, osc2_coarse: P.OSC2_COARSE, osc2_fine: P.OSC2_FINE,
-  osc2_pulse_width: P.OSC2_PW,
+  osc2_pulse_width: P.OSC2_PW, osc2_lo_freq: 36,
   noise_level: P.NOISE, osc_mix: P.OSC_MIX,
   filter_cutoff: P.FILT_CUT, filter_resonance: P.FILT_RES,
   filter_env_amount: P.FILT_ENV, filter_keyboard_tracking: P.FILT_KEY,
@@ -106,12 +107,12 @@ const FIELD_TO_PARAM = {
 function toNorm(id, v) {
   switch (id) {
     case P.OSC1_WAVE:    return Math.min(1, v / 1);
-    case P.OSC1_FREQ:    return Math.max(0, Math.min(1, v / 48 + 0.5));
+    case P.OSC1_FREQ:    return Math.max(0, Math.min(1, v / 120 + 0.5));
     case P.OSC1_FINE:    return Math.max(0, Math.min(1, v / 2 + 0.5));
     case P.OSC1_PW:      return Math.max(0, Math.min(1, v));
     case P.OSC1_PENV:    return Math.max(0, Math.min(1, v / 0.5 + 0.5));
     case P.OSC2_WAVE:    return Math.min(1, v / 2);
-    case P.OSC2_COARSE:  return Math.max(0, Math.min(1, v / 48 + 0.5));
+    case P.OSC2_COARSE:  return Math.max(0, Math.min(1, v / 120 + 0.5));
     case P.OSC2_FINE:    return Math.max(0, Math.min(1, v / 2 + 0.5));
 
     case P.OSC2_PW:      return Math.max(0, Math.min(1, v));
@@ -142,6 +143,7 @@ function toNorm(id, v) {
     case P.UNISON:       return Math.max(0, Math.min(1, (v - 1) / 7));
     case P.UNISON_DET:   return Math.max(0, Math.min(1, v));
     case P.MASTER_VOL:   return Math.max(0, Math.min(1, v));
+    case 36:             return v > 0.5 ? 1 : 0; // Osc2LoFreq
     default:             return Math.max(0, Math.min(1, v));
   }
 }
@@ -251,6 +253,7 @@ class KnobControl {
     this.el          = el;
     this.paramId     = +el.dataset.param;
     this.defaultVal  = parseFloat(el.dataset.default ?? 0.5);
+    this.steps       = el.dataset.steps ? parseInt(el.dataset.steps, 10) : 0;
     this.value       = DEFAULTS[this.paramId] ?? this.defaultVal;
     this.indicatorEl = el.querySelector('.knob-indicator');
     this.valueEl     = el.closest('.control')?.querySelector('.knob-value');
@@ -301,7 +304,14 @@ class KnobControl {
     }, { passive: false });
   }
 
-  _set(v) { this.value = v; this._render(); engine.setParam(this.paramId, v); }
+  _set(v) { 
+    if (this.steps > 1) {
+      v = Math.round(v * (this.steps - 1)) / (this.steps - 1);
+    }
+    this.value = v; 
+    this._render(); 
+    engine.setParam(this.paramId, v); 
+  }
 
   /** External update (from preset load / MIDI CC) — does NOT re-send to engine */
   setValue(v) { this.value = v; this._render(); }
@@ -310,7 +320,13 @@ class KnobControl {
     // 0→1 mapped to –135°→+135° (270° sweep)
     const angle = -135 + this.value * 270;
     if (this.indicatorEl) this.indicatorEl.style.transform = `rotate(${angle}deg)`;
-    if (this.valueEl)     this.valueEl.textContent = this.value.toFixed(2);
+    if (this.valueEl) {
+      if (this.steps > 1) {
+        this.valueEl.textContent = Math.round(this.value * (this.steps - 1));
+      } else {
+        this.valueEl.textContent = this.value.toFixed(2);
+      }
+    }
   }
 }
 
@@ -341,6 +357,34 @@ class WaveSwitchControl {
   }
 }
 
+// ═══════════════════════════════════════════════════════════
+// TOGGLE SWITCH CONTROL
+// ═══════════════════════════════════════════════════════════
+class ToggleControl {
+  constructor(el) {
+    this.el      = el;
+    this.paramId = +el.dataset.param;
+    this.state   = false;
+    this.btn     = el.querySelector('.toggle-btn');
+    if (this.btn) {
+      this.btn.addEventListener('click', () => {
+        this._set(!this.state);
+      });
+    }
+  }
+
+  _set(active) {
+    this.state = active;
+    if (this.btn) this.btn.classList.toggle('active', active);
+    engine.setParam(this.paramId, active ? 1.0 : 0.0);
+  }
+
+  setValue(v) {
+    this.state = (v > 0.5);
+    if (this.btn) this.btn.classList.toggle('active', this.state);
+  }
+}
+
 function initControls() {
   document.querySelectorAll('.knob[data-param]').forEach(el => {
     const k = new KnobControl(el);
@@ -349,6 +393,10 @@ function initControls() {
   document.querySelectorAll('.wave-switch[data-param]').forEach(el => {
     const s = new WaveSwitchControl(el);
     allSwitches.set(s.paramId, s);
+  });
+  document.querySelectorAll('.toggle-switch[data-param]').forEach(el => {
+    const t = new ToggleControl(el);
+    allSwitches.set(t.paramId, t);
   });
 }
 
@@ -366,7 +414,11 @@ function applyPresetData(rawJson) {
     if (allKnobs.has(id))    allKnobs.get(id).setValue(n);
     if (allSwitches.has(id)) {
       const sw = allSwitches.get(id);
-      sw.setIndex(Math.round(internal));
+      if (sw.setIndex) {
+        sw.setIndex(Math.round(internal));
+      } else if (sw.setValue) {
+        sw.setValue(n);
+      }
     }
   }
   engine.loadParamMap(normMap);

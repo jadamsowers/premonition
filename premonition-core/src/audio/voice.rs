@@ -153,7 +153,12 @@ impl Voice {
 
         // Static pitch offsets (coarse/fine)
         let osc1_semitones = params.osc1_freq + params.osc1_fine;
-        let osc2_semitones = params.osc2_coarse + params.osc2_fine;
+        let mut osc2_semitones = params.osc2_coarse + params.osc2_fine;
+        
+        if params.osc2_lo_freq {
+            // Drop Osc 2 by 5 octaves (60 semitones) to enter LFO range
+            osc2_semitones -= 60.0;
+        }
         
         // Fast approximation for 2^(semitones / 12)
         // 2^(x) ≈ 1.0 + 0.693*x + 0.240*x^2 for small x.
