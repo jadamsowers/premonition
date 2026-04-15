@@ -1,0 +1,31 @@
+/* tslint:disable */
+/* eslint-disable */
+export const memory: WebAssembly.Memory;
+export const premonition_create: () => number;
+export const premonition_destroy: (a: number) => void;
+export const premonition_get_param: (a: number, b: number) => number;
+export const premonition_init: (a: number, b: number) => void;
+export const premonition_note_off: (a: number, b: number, c: number) => void;
+export const premonition_note_on: (a: number, b: number, c: number, d: number) => void;
+export const premonition_panic: () => void;
+export const premonition_process: (a: number, b: number, c: number, d: number, e: number) => void;
+export const premonition_set_param: (a: number, b: number, c: number) => void;
+export const __wbg_wasmengine_free: (a: number, b: number) => void;
+export const create_engine: () => number;
+export const get_param_count: () => number;
+export const get_param_name: (a: number, b: number) => void;
+export const wasmengine_all_notes_off: (a: number) => void;
+export const wasmengine_get_param: (a: number, b: number) => number;
+export const wasmengine_get_params_json: (a: number, b: number) => void;
+export const wasmengine_init: (a: number, b: number) => void;
+export const wasmengine_midi_message: (a: number, b: number, c: number, d: number) => void;
+export const wasmengine_note_off: (a: number, b: number, c: number) => void;
+export const wasmengine_note_on: (a: number, b: number, c: number, d: number) => void;
+export const wasmengine_process: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
+export const wasmengine_set_param: (a: number, b: number, c: number) => void;
+export const wasmengine_set_params_json: (a: number, b: number, c: number, d: number) => void;
+export const wasmengine_new: () => number;
+export const __wbindgen_add_to_stack_pointer: (a: number) => number;
+export const __wbindgen_export: (a: number, b: number, c: number) => void;
+export const __wbindgen_export2: (a: number, b: number) => number;
+export const __wbindgen_export3: (a: number, b: number, c: number, d: number) => number;

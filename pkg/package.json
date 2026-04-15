@@ -1,0 +1,15 @@
+{
+  "name": "premonition-wasm",
+  "type": "module",
+  "version": "0.1.0",
+  "files": [
+    "premonition_wasm_bg.wasm",
+    "premonition_wasm.js",
+    "premonition_wasm.d.ts"
+  ],
+  "main": "premonition_wasm.js",
+  "types": "premonition_wasm.d.ts",
+  "sideEffects": [
+    "./snippets/*"
+  ]
+}
