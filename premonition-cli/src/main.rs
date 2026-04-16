@@ -467,8 +467,15 @@ fn interactive_audio_selection(
 
 fn run_audio(state: &Arc<Mutex<SynthState>>, device: cpal::Device, sample_rate: usize) {
     let config = device.default_output_config().unwrap();
+    let actual_sample_rate = config.sample_rate().0 as f32;
     let state_clone = state.clone();
     let err_fn = |err| eprintln!("Error in audio thread: {}", err);
+
+    // Initialize engine with the real device sample rate
+    {
+        let mut mut_state = state.lock().unwrap();
+        mut_state.engine.init(actual_sample_rate);
+    }
 
     let stream = match config.sample_format() {
         cpal::SampleFormat::F32 => device.build_output_stream(
@@ -481,7 +488,7 @@ fn run_audio(state: &Arc<Mutex<SynthState>>, device: cpal::Device, sample_rate: 
                     let (mut left, mut right) = ([0.0f32], [0.0f32]);
                     state
                         .engine
-                        .process(&mut left, &mut right, 1, sample_rate as f32);
+                        .process(&mut left, &mut right, 1, actual_sample_rate);
 
                     if frame.len() >= 2 {
                         frame[0] = left[0];
