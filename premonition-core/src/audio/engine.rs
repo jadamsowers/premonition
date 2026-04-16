@@ -72,8 +72,10 @@ impl Engine {
             voice_out_r = self.effects.process_sample(voice_out_r);
 
             let master_vol = self.params.master_volume;
-            left[i] = voice_out_l * master_vol;
-            right[i] = voice_out_r * master_vol;
+            let (final_l, final_r) = self.output.process(voice_out_l, voice_out_r, master_vol);
+            
+            left[i] = final_l;
+            right[i] = final_r;
         }
     }
 
