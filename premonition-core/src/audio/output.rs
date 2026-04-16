@@ -54,7 +54,7 @@ impl OutputStage {
     fn soft_clip(&self, input: f32) -> f32 {
         let positive_asymmetry = self.soft_clip_positive(input);
         let negative_asymmetry = self.soft_clip_negative(input);
-        positive_asymmetry + negative_asymmetry - input
+        positive_asymmetry + negative_asymmetry
     }
 
     #[allow(dead_code)]
